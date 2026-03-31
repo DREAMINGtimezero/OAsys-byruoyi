@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <th:block th:include="include :: header('发起软件流程')" />
+  <th:block th:include="include :: bootstrap-fileinput-css"/>
+  <th:block th:include="include :: select2-css"/>
+  <th:block th:include="include :: layout-latest-css" />
+  <th:block th:include="include :: ztree-css" />
+</head>
+<body class="">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+  <form class="form-horizontal m" id="form-process-initiate">
+    <!-- 隐藏字段存储流程ID -->
+    <input type="hidden" name="id" th:value="${softwareProcess.id}"/>
+    <input type="hidden" name="softwareId" th:value="${softwareProcess.softwareId}">
+    <div class="form-group">
+      <label class="col-sm-3 control-label is-required">发起意见：</label>
+      <div class="col-sm-8">
+        <textarea class="form-control" name="initiateNote" id="initiateNote" required></textarea>
+      </div>
+    </div>
+
+    <!--处理人选择框-->
+    <th:block th:include="include :: handlerInput" />
+
+    <input type="hidden" name="fileNames">
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="ibox float-e-margins">
+          <div class="ibox-content">
+            <div class="form-group">
+              <label class="font-noraml">文件上传</label>
+              <div class="file-loading">
+                <input id="multipleFile" name="files" type="file" multiple>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: bootstrap-fileinput-js" />
+<th:block th:include="include :: handlerInputJS" />
+<script type="text/javascript">
+  var prefix = ctx + "purchase/software";
+
+  formValidate("form-process-initiate");
+
+  $(document).ready(function () {
+    // 多图上传
+    $("#multipleFile").fileinput({
+      uploadUrl: ctx + 'common/uploads',
+      uploadAsync: false
+    }).on('filebatchuploadsuccess', function (event, data, previewId, index) {
+      debugger;
+      var rsp = data.response;
+      $("input[name='fileNames']").val(rsp.fileNames.replaceAll("/profile/upload",""));
+    }).on('fileremoved', function (event, id, index) {
+      $("input[name='" + event.currentTarget.id + "']").val('')
+    })
+  });
+
+  function submitHandler() {
+    if ($.validate.form()) {
+      $.operate.save(prefix + "/process-initiate", $('#form-process-initiate').serialize(), submitCallback)
+    }
+  }
+  function submitCallback(result) {
+    if (result.code === web_status.SUCCESS){
+      var found = false;
+      // 添加调试信息
+      console.log("尝试刷新合同详情页...");
+
+      top.$("iframe").each(function() {
+        console.log("检查iframe:", this.src);
+        // 更改匹配逻辑，使用更精确的匹配方式
+        if (this.src && this.src.indexOf("/purchase/software/details/") > -1) {
+          try {
+            console.log("找到目标iframe，调用initDetailTable()");
+            this.contentWindow.initDetailTable();
+            found = true;
+            $.modal.msgSuccess("操作成功，详情页已刷新");
+          } catch (e) {
+            console.error("调用initDetailTable失败:", e);
+            $.modal.msgError("刷新详情页失败，请手动刷新页面");
+          }
+          return false;
+        }
+      });
+
+      if (!found) {
+        console.warn("未找到包含contract-details的iframe");
+        $.modal.msgSuccess("操作成功，但未能自动刷新详情页");
+      }
+    }
+  }
+</script>
+</body>
+</html>

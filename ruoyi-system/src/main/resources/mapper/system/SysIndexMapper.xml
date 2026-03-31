@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysIndexMapper">
+    <resultMap id="StatisticResult" type="com.ruoyi.system.domain.StatisticResult">
+        <result property="contractCount" column="contract_count"/>
+        <result property="technicalCount" column="technical_count"/>
+        <result property="outCount" column="out_count"/>
+        <result property="moneyCount" column="money_count"/>
+        <result property="softwareCount" column="software_count"/>
+        <result property="serviceCount" column="service_count"/>
+        <result property="hardwareCount" column="hardware_count"/>
+    </resultMap>
+    <resultMap id="CardDataResultMap" type="com.ruoyi.system.domain.CardData">
+        <result column="card_title" property="cardTitle"/>
+        <result column="total" property="total"/>
+        <result column="un_submit_ted" property="unSubmitTed"/>
+        <result column="in_progress" property="inProgress"/>
+        <result column="completed" property="completed"/>
+    </resultMap>
+    <!--查询子表中未处理的子项,并确定关联的主项未被删除-->
+    <select id="getStatistic" resultMap="StatisticResult">
+        SELECT
+            (SELECT COUNT(*) FROM t_contract_process WHERE handle_by = #{loginName} AND status=#{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_contract WHERE t_contract.id=t_contract_process.contract_id AND t_contract.delete_flag=0)) AS contract_count,
+            (SELECT COUNT(*) FROM t_technical_agreement_sub WHERE handle_by = #{loginName} AND status=#{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_technical_agreement WHERE t_technical_agreement.id=t_technical_agreement_sub.technical_agreement_id AND t_technical_agreement.delete_flag=0)) AS technical_count,
+            (SELECT COUNT(*) FROM t_out_child WHERE handle_by = #{loginName} AND status=#{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_out WHERE t_out.id=t_out_child.out_id AND t_out.delete_flag=0)) AS out_count,
+            (SELECT COUNT(*)
+             FROM t_please_money_config_sun sun
+             WHERE sun.handle_by = #{loginName}
+               AND sun.status = #{status}
+               AND sun.delete_flag = 0
+               AND EXISTS (
+                 SELECT 1
+                 FROM t_please_money_config_sub sub
+                          INNER JOIN t_please_money_config main ON sub.m_id = main.id
+                 WHERE sub.id = sun.sub_id AND sub.delete_flag = 0 AND main.delete_flag = 0
+             )) AS money_count,
+            (SELECT COUNT(*) FROM t_software_process WHERE handle_by = #{loginName} AND status=#{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_software WHERE t_software.id=t_software_process.software_id AND delete_flag=0)) AS software_count,
+            (SELECT COUNT(*) FROM t_my_service_sub WHERE handle_by = #{loginName} AND status=#{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_my_service WHERE t_my_service.id=t_my_service_sub.service_id AND delete_flag=0)) AS service_count,
+            (SELECT COUNT(*) FROM t_hardware_child WHERE handle_by = #{loginName} AND status=#{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_hardware WHERE t_hardware.id=t_hardware_child.hardware_id AND delete_flag=0)) AS hardware_count,
+            (SELECT COUNT(*) FROM t_expense_claim_sub WHERE handle_by = #{loginName} AND status=#{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_expense_claim WHERE t_expense_claim.id=t_expense_claim_sub.expense_claim_id AND delete_flag=0)) AS claim_count,
+            (SELECT COUNT(*) FROM t_apply_formal_sub WHERE handle_by = #{loginName} AND status= #{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_apply_formal WHERE t_apply_formal.id=t_apply_formal_sub.apply_formal_id AND delete_flag=0)) AS apply_count,
+            (SELECT COUNT(*) FROM t_office_supplies_sub WHERE handle_by = #{loginName} AND status= #{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_office_supplies WHERE t_office_supplies.id=t_office_supplies_sub.office_supplies_id AND delete_flag=0)) AS office_supplies_count,
+            (SELECT COUNT(*) FROM t_service_contract_process WHERE handle_by = #{loginName} AND status= #{status} AND delete_flag=0
+                                                    AND EXISTS(SELECT 1 FROM t_service_contract WHERE t_service_contract.id=t_service_contract_process.service_contract_id AND delete_flag=0)) AS service_contract_count
+    </select>
+
+    <select id="getCardDataList" resultMap="CardDataResultMap">
+
+        SELECT '项目统计' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_project_statis
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '合同' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_contract
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '技术附件' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_technical_agreement
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '硬件' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_hardware
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '软件' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_software
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '服务' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_my_service
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '差旅费' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_out
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '请款' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_please_money_config
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '财务报销' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_expense_claim
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '办公用品' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_office_supplies
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '服务合同' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_service_contract
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+        UNION ALL
+        SELECT '转正申请' AS card_title, COUNT(*) AS total,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS un_submit_ted,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS completed
+        FROM t_apply_formal
+        WHERE delete_flag = 0
+        <if test="createBy != null and createBy != '' and !isCeo">
+            and create_by = #{createBy}
+        </if>
+    </select>
+    <select id="countGroupByStatus" resultType="java.util.Map">
+        SELECT status, COUNT(1) as count
+        FROM t_project_statis
+        <where>
+            delete_flag = 0
+        </where>
+        GROUP BY status
+    </select>
+</mapper>

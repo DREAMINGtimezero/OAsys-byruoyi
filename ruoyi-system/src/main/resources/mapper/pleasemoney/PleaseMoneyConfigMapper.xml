@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.pleasemoney.mapper.PleaseMoneyConfigMapper">
+
+    <resultMap type="PleaseMoneyConfig" id="PleaseMoneyConfigResult">
+        <result property="id"    column="id"    />
+        <result property="projectCode"    column="project_code"    />
+        <result property="projectName"    column="project_name"    />
+        <result property="contractName"    column="contract_name"    />
+        <result property="title"    column="title"    />
+        <result property="configName"    column="config_name"    />
+        <result property="configDetail"    column="config_detail"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <resultMap type="PleaseMoneyConfigSub" id="PleaseMoneyConfigSubResult">
+        <result property="id"    column="id"    />
+        <result property="mId"    column="m_id"    />
+        <result property="pleaseMoneyType"    column="please_money_type"    />
+        <result property="money"    column="money"    />
+        <result property="sort"    column="sort"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <resultMap type="PleaseMoneyConfigSun" id="PleaseMoneyConfigSunResult">
+        <result property="id"    column="id"    />
+        <result property="subId"    column="sub_id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="initiateNote"    column="initiate_note"    />
+        <result property="initiateTime"    column="initiate_time"    />
+        <result property="handleBy"    column="handle_by"    />
+        <result property="handleTime"    column="handle_time"    />
+        <result property="handleNote"    column="handle_note"    />
+        <result property="status"    column="status"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="fileNames"    column="file_names"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <sql id="selectPleaseMoneyConfigVo">
+        select id, config_name, config_detail, sort, status, create_by, create_time, update_by, update_time, delete_flag from t_please_money_config
+    </sql>
+
+    <sql id="selectPleaseMoneyConfigSubVo">
+        select id, m_id, please_money_type, money, sort, status, create_by, create_time, update_by, update_time, delete_flag from t_please_money_config_sub
+    </sql>
+
+    <sql id="selectPleaseMoneyConfigSunVo">
+        select id, sub_id, create_by, create_time, initiate_note, initiate_time, handle_by, handle_time, handle_note, status, update_by, update_time, delete_flag, file_names, note from t_please_money_config_sun
+    </sql>
+
+    <select id="selectPleaseMoneyConfigList" parameterType="PleaseMoneyConfig" resultMap="PleaseMoneyConfigResult">
+        select tpmc.id, tpmc.config_name, tpmc.project_code, tps.project_name, tpmc.contract_name, tpmc.title, tpmc.config_detail,
+               tpmc.status,tpmc.create_by, tpmc.create_time, tpmc.update_by, tpmc.update_time, tpmc.delete_flag
+        from t_please_money_config tpmc left join t_project_statis tps on tpmc.project_code = tps.project_code
+        <where>
+            AND tpmc.delete_flag = 0
+            <if test="createBy != null and createBy != '' ">
+                AND (tpmc.create_by = #{createBy}
+                OR EXISTS (
+                SELECT 1
+                FROM t_please_money_config_sub tpms
+                JOIN t_please_money_config_sun tpmcs ON tpms.id = tpmcs.sub_id
+                WHERE tpmc.id = tpms.m_id
+                AND tpms.delete_flag = 0
+                AND tpmcs.delete_flag = 0
+                AND (tpmcs.create_by = #{createBy} OR tpmcs.handle_by = #{createBy})
+                ))
+            </if>
+            <if test="id != null  and id != ''"> and tpmc.id = #{id}</if>
+            <if test="projectCode != null  and projectCode != ''"> and tpmc.project_code = #{projectCode}</if>
+            <if test="configName != null  and configName != ''"> and tpmc.config_name like concat('%', #{configName}, '%')</if>
+            <if test="status != null "> and tpmc.status = #{status}</if>
+            <if test="beginCreateTime != null and beginCreateTime != ''">and tpmc.create_time >= #{beginCreateTime}</if>
+            <if test="endCreateTime != null and endCreateTime != ''">and tpmc.create_time <![CDATA[ <= ]]> #{endCreateTime}</if>
+        </where>
+    </select>
+
+    <select id="selectPleaseMoneyConfigSubList" parameterType="PleaseMoneyConfigSub" resultMap="PleaseMoneyConfigSubResult">
+        <include refid="selectPleaseMoneyConfigSubVo"/>
+        <where>
+            delete_flag = 0
+            <if test="mId != null">and m_id = #{mId}</if>
+            <if test="id != null">and id = #{id}</if>
+        </where>
+        order by sort asc
+    </select>
+
+    <select id="selectSunListByPleaseMoneyConfigSubId" parameterType="Long" resultMap="PleaseMoneyConfigSunResult">
+        <include refid="selectPleaseMoneyConfigSunVo"/>
+        where sub_id = #{subId}
+    </select>
+
+    <select id="selectPleaseMoneyConfigSunList" parameterType="PleaseMoneyConfigSun" resultMap="PleaseMoneyConfigSunResult">
+        <include refid="selectPleaseMoneyConfigSunVo"/>
+        <where>
+            <if test="id != null "> and id = #{id}</if>
+            <if test="subId != null "> and sub_id = #{subId}</if>
+            <if test="initiateNote != null  and initiateNote != ''"> and initiate_note = #{initiateNote}</if>
+            <if test="initiateTime != null "> and initiate_time = #{initiateTime}</if>
+            <if test="handleBy != null  and handleBy != ''"> and handle_by = #{handleBy}</if>
+            <if test="handleTime != null "> and handle_time = #{handleTime}</if>
+            <if test="handleNote != null  and handleNote != ''"> and handle_note = #{handleNote}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+            <if test="fileNames != null  and fileNames != ''"> and file_names = #{fileNames}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+        </where>
+    </select>
+
+    <select id="selectPleaseMoneyConfigSunById" parameterType="Long" resultMap="PleaseMoneyConfigSunResult">
+        <include refid="selectPleaseMoneyConfigSunVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectSunStatusSum" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_please_money_config_sun
+        WHERE sub_id = #{subId}
+          AND status IN (1, 2)
+          AND delete_flag = 0
+    </select>
+
+    <insert id="insertPleaseMoneyConfig" parameterType="PleaseMoneyConfig" useGeneratedKeys="true" keyProperty="id">
+        insert into t_please_money_config
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">project_code,</if>
+            <if test="contractName != null and contractName != ''">contract_name,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="configName != null and configName != ''">config_name,</if>
+            <if test="configDetail != null">config_detail,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">#{projectCode},</if>
+            <if test="contractName != null and contractName != ''">#{contractName},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="configName != null and configName != ''">#{configName},</if>
+            <if test="configDetail != null">#{configDetail},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertPleaseMoneyConfigSub" parameterType="PleaseMoneyConfigSub" useGeneratedKeys="true" keyProperty="id">
+        insert into t_please_money_config_sub
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mId != null">m_id,</if>
+            <if test="pleaseMoneyType != null and pleaseMoneyType != ''">please_money_type,</if>
+            <if test="money != null">money,</if>
+            <if test="sort != null and sort != ''">sort,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mId != null">#{mId},</if>
+            <if test="pleaseMoneyType != null and pleaseMoneyType != ''">#{pleaseMoneyType},</if>
+            <if test="money != null">#{money},</if>
+            <if test="sort != null and sort != ''">#{sort},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertPleaseMoneyConfigSun" parameterType="PleaseMoneyConfigSun" useGeneratedKeys="true" keyProperty="id">
+        insert into t_please_money_config_sun
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="subId != null">sub_id,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="initiateNote != null">initiate_note,</if>
+            <if test="initiateTime != null">initiate_time,</if>
+            <if test="handleBy != null">handle_by,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="handleNote != null">handle_note,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="fileNames != null">file_names,</if>
+            <if test="note != null">note,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="subId != null">#{subId},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="initiateNote != null">#{initiateNote},</if>
+            <if test="initiateTime != null">#{initiateTime},</if>
+            <if test="handleBy != null">#{handleBy},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="handleNote != null">#{handleNote},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+            <if test="note != null">#{note},</if>
+        </trim>
+    </insert>
+
+    <update id="updatePleaseMoneyConfig" parameterType="PleaseMoneyConfig">
+        update t_please_money_config
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+            <if test="contractName != null and contractName != ''">contract_name = #{contractName},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="configName != null and configName != ''">config_name = #{configName},</if>
+            <if test="configDetail != null">config_detail = #{configDetail},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updatePleaseMoneyConfigSub" parameterType="PleaseMoneyConfigSub">
+        update t_please_money_config_sub
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="pleaseMoneyType != null and pleaseMoneyType != ''">please_money_type = #{pleaseMoneyType},</if>
+            <if test="money != null">money = #{money},</if>
+            <if test="sort != null and sort != ''">sort = #{sort},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updatePleaseMoneyConfigSun" parameterType="PleaseMoneyConfigSun">
+        update t_please_money_config_sun
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="subId != null">sub_id = #{subId},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="initiateNote != null">initiate_note = #{initiateNote},</if>
+            <if test="initiateTime != null">initiate_time = #{initiateTime},</if>
+            <if test="handleBy != null">handle_by = #{handleBy},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="handleNote != null">handle_note = #{handleNote},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="fileNames != null and fileNames != ''">file_names = #{fileNames},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deletePleaseMoneyConfigByIds" parameterType="PleaseMoneyConfig">
+        update t_please_money_config set delete_flag = 1,update_by = #{updateBy} where id in
+        <foreach item="id" collection="ids" separator="," open="(" close=")" index="">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deletePleaseMoneyConfigSubByIds" parameterType="PleaseMoneyConfigSub">
+        update t_please_money_config_sub set delete_flag = 1,update_by = #{updateBy} where id in
+        <foreach item="id" collection="ids" separator="," open="(" close=")" index="">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

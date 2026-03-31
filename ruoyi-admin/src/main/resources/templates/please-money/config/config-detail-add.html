@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+	<th:block th:include="include :: header('新增请款统计明细')" />
+	<th:block th:include="include :: bootstrap-fileinput-css" />
+	<style>
+		input[name="money"]+.error {
+			right:64px !important;
+		}
+		input[name="money"]{
+			width:95%;
+			border:none;
+			outline:none;
+		}
+	</style>
+</head>
+<body class="">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<form class="form-horizontal m" id="config-detail-add">
+			<input name="mId" type="hidden" th:value="${pleaseMoneyConfigSub.mId}" />
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">请款类型：</label>
+				<div class="col-sm-6">
+					<select class="form-control" name="pleaseMoneyType" th:with="type=${@dict.getType('please_money_type')}">
+						<option value="">--请选择--</option>
+						<option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">请款比例(百分比)：</label>
+				<div class="col-sm-6">
+					<div class="form-control">
+					    <span><input  type="number" min="0" max="100" name="money" required></span><span>%</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">排序：</label>
+				<div class="col-sm-6">
+					<input class="form-control" type="number" name="sort">
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<th:block th:include="include :: footer" />
+	<th:block th:include="include :: bootstrap-fileinput-js" />
+	<script type="text/javascript">
+		var prefix = ctx + "please-money/config";
+
+		$("#config-detail-add").validate({
+			rules:{
+				pleaseMoneyType:{
+					required:true
+				},
+				money:{
+					required: true,
+					number: true,
+					min: 0,
+					max: 100
+				},
+				sort:{
+					required:true
+				}
+			},
+			messages: {
+				money: {
+					required: "请输入金额",
+					number: "请输入有效的金额",
+					min: "金额不能为负数",
+					max: "不能超过100%"
+				}
+			},
+			focusInvalid: false,
+			onfocusout: function(element) {
+				$(element).valid();
+			},
+			onkeyup: function(element) {
+				$(element).valid();
+			},
+			showErrors: function(errorMap, errorList) {
+				// 只显示第一个错误信息
+				if (errorList.length > 0) {
+					let firstError = errorList[0];
+					this.errorList = [firstError];
+					this.errorMap = {};
+					this.errorMap[firstError.element.name] = firstError.message;
+				}
+				this.defaultShowErrors();
+			}
+		});
+
+		function submitHandler() {
+			if ($.validate.form()) {
+				$.operate.save(prefix + "/config-detail-add", $('#config-detail-add').serialize(),function(result) {
+					if (result.code == web_status.SUCCESS){
+						top.$("iframe").each(function() {
+							if (this.src.indexOf("config-detail") > -1) {
+								this.contentWindow.initDetailTable();
+								return false;
+							}
+						});
+					}
+				});
+			}
+	    }
+	</script>
+</body>
+</html>

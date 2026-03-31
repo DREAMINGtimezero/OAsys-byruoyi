@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+	<th:block th:include="include :: header('修改请款配置')" />
+</head>
+<body class="white-bg">
+	<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+		<form class="form-horizontal m" id="config-edit" th:object="${pleaseMoneyConfig}">
+		    <input name="id" type="hidden"  th:field="*{id}" />
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">请款名称：</label>
+				<div class="col-sm-6">
+					<input class="form-control" type="text" name="configName" th:field="*{configName}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">所属项目：</label>
+				<div class="col-sm-6">
+					<select class="form-control" name="projectCode" onchange="initContractName()">
+						<option th:value="${pleaseMoneyConfig.projectCode}" th:text="${pleaseMoneyConfig.projectName}"></option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">关联合同：</label>
+				<div class="col-sm-6">
+					<select class="form-control" name="contractName">
+						<option th:value="${pleaseMoneyConfig.contractName}" th:text="${pleaseMoneyConfig.contractName}"></option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">关联技术协议：</label>
+				<div class="col-sm-6">
+					<select class="form-control" name="title">
+						<option th:value="${pleaseMoneyConfig.title}" th:text="${pleaseMoneyConfig.title}"></option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">请款详情：</label>
+				<div class="col-sm-6">
+					<textarea name="configDetail" maxlength="500" class="form-control" rows="5" th:field="*{configDetail}"></textarea>
+				</div>
+			</div>
+		</form>
+	</div>
+	<th:block th:include="include :: footer" />
+	<script type="text/javascript">
+		var prefix = ctx + "please-money/config";
+
+		$(function() {
+			initProjectCode();
+			initContractName();
+		});
+
+		$("#config-edit").validate({
+			rules:{
+				projectName:{
+					required:true
+				},
+				projectCode:{
+					required:true
+				},
+				contractName:{
+					required:true
+				},
+				title:{
+					required:true
+				}
+			},
+		});
+
+		function submitHandler() {
+			if ($.validate.form()) {
+				$.operate.save(prefix + "/config-edit", $('#config-edit').serialize());
+			}
+	    }
+
+		// 初始化项目下拉框
+		function initProjectCode(){
+			$.ajax({
+				url: ctx + "project/statis/list",
+				type: "post",
+				dataType: "json",
+				data: {
+					"status": 2,
+					"pageNum": 1,
+					"pageSize": 1000
+				},
+				success: function(result) {
+					debugger;
+					let projectCode = $("select[name='projectCode']").val();
+					$("select[name='projectCode']").empty();
+					if (result.code == web_status.SUCCESS) {
+						var data = result.rows;
+						for (var i = 0; i < data.length; i++) {
+							if ($.common.equals(projectCode, data[i].projectCode)){
+								$("select[name='projectCode']").append("<option value='" + data[i].projectCode + "' selected>" + data[i].projectName + "</option>");
+							}else {
+								$("select[name='projectCode']").append("<option value='" + data[i].projectCode + "'>" + data[i].projectName + "</option>");
+							}
+						}
+					}else {
+						$.modal.msgWarning("项目下拉框加载失败");
+					}
+				}
+			})
+		}
+
+		// 初始化合同下拉框
+		function initContractName(){
+			$.ajax({
+				url: ctx + "contract/contract/list",
+				type: "post",
+				dataType: "json",
+				data: {
+					"status": 3,
+					"pageNum": 1,
+					"pageSize": 1000,
+					"projectCode": $("select[name='projectCode']").val()
+				},
+				success: function(result) {
+					if (result.code == web_status.SUCCESS) {
+						debugger;
+						let contractName = $("select[name='contractName']").val();
+						$("select[name='contractName']").empty();
+						var data = result.rows;
+						for (var i = 0; i < data.length; i++){
+							if ($.common.equals(contractName, data[i].contractName)){
+								$("select[name='contractName']").append("<option value='" + data[i].contractName + "' selected>" + data[i].contractName + "</option>");
+							}else {
+								$("select[name='contractName']").append("<option value='" + data[i].contractName + "'>" + data[i].contractName + "</option>");
+							}
+						}
+					}else {
+						$.modal.msgWarning("合同下拉框加载失败");
+					}
+				}
+			})
+			initTitle();
+		}
+
+		// 初始化技术附件
+		function initTitle(){
+			$.ajax({
+				url: ctx + "contract/technical-agreement/list",
+				type: "post",
+				dataType: "json",
+				data: {
+					"status": 3,
+					"pageNum": 1,
+					"pageSize": 1000,
+					"projectCode": $("select[name='projectCode']").val()
+				},
+				success: function(result) {
+					if (result.code == web_status.SUCCESS) {
+						let title = $("select[name='title']").val();
+						$("select[name='title']").empty();
+						var data = result.rows;
+						for (var i = 0; i < data.length; i++){
+							if ($.common.equals(title, data[i].title)){
+								$("select[name='title']").append("<option value='" + data[i].title + "' selected>" + data[i].title + "</option>");
+							}else {
+								$("select[name='title']").append("<option value='" + data[i].title + "'>" + data[i].title + "</option>");
+							}
+						}
+					}else {
+						$.modal.msgWarning("技术附件下拉框加载失败");
+					}
+				}
+			})
+		}
+	</script>
+</body>
+</html>

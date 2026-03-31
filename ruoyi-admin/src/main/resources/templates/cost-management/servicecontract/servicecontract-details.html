@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <th:block th:include="include :: header('服务合同详情')" />
+    <th:block th:include="include :: datetimepicker-css" />
+    <style type="text/css">
+        table label.error{position: inherit;}select + label.error{z-index:1;right:40px;}
+    </style>
+
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-contract-detail" th:object="${servicecontract}">
+       <h4 class="form-header h4">服务合同详情</h4>
+        <div class="row">
+            <div class="col-sm-6">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">服务合同编号：</label>
+                <div class="col-sm-8">
+                    <input class="form-control" type="text" name="serviceContractName" th:field="*{serviceContractId}" readonly>
+                </div>
+            </div>
+            </div>
+            <div class="col-sm-6">
+            <div class="form-group">
+               <label class="col-sm-3 control-label">服务合同名称：</label>
+               <div class="col-sm-8">
+                   <input class="form-control" type="text" name="serviceContractName" th:field="*{serviceContractName}" readonly>
+               </div>
+            </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">金额</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" type="number" name="serviceAmount" th:field="*{serviceAmount}" readonly>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">服务合同描述：</label>
+                <div class="col-sm-9">
+                    <textarea class="form-control" type="text" name="serviceContractName" th:field="*{description}" readonly></textarea>
+                </div>
+            </div>
+            </div>
+        </div>
+        <h4 class="form-header h4">服务合同处理流程</h4>
+        <div class="row">
+            <div class="col-sm-12">
+                <div th:if="${servicecontract.status != 3}">
+                    <button type="button" class="btn btn-white btn-sm" onclick="addRow()">
+                        <i class="fa fa-plus"> 新增流程</i>
+                    </button>
+                    <button type="button" class="btn btn-white btn-sm" onclick="handleFinish()">
+                        <i class="fa fa-minus"> 结束流程</i>
+                    </button>
+                </div>
+                <div class="col-sm-12 select-table table-striped">
+                    <table id="bootstrap-table"></table>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row">
+    <div class="col-sm-offset-5 col-sm-10">
+        <!--    <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>保 存</button>&nbsp;-->
+        <button type="button" class="btn btn-sm btn-danger" onclick="closeCurrentPage()"><i class="fa fa-reply-all"></i>关 闭 </button>
+    </div>
+</div>
+</body>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: datetimepicker-js" />
+<script th:src="@{/js/jquery.tmpl.js}"></script>
+<script th:inline="javascript">
+    $(function () {
+        var prefix = ctx + "cost-management/servicecontract";
+        var serviceContractId = /*[[${serviceContract.id}]]*/ 0;
+        var options = {
+            url: prefix + "/process-service-list",
+            method: "POST",
+            uniqueId: 'id',           // 设置唯一标识字段
+            search: false,                 // 禁用搜索框
+            showSearch: false,             // 禁用搜索按钮
+            showToggle: false,            // 禁用切换视图（列表/卡片）按钮
+            pagination: false,            //禁用分页
+            queryParams: function(params) {
+                console.log("传给后台的serviceContractId:", serviceContractId);
+                return {
+                    serviceContractId: serviceContractId  // 传递服务合同ID
+                };
+            },
+            columns: [{
+                checkbox: false,
+                visible: false// 禁用复选框
+            },
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: "发起人",
+                },
+                {
+                    field: 'createDept',
+                    align: 'center',
+                    title: '发起人所属部门',
+                    visible: true      // 默认隐藏
+                },
+                {
+                    field: 'createPost',
+                    align: 'center',
+                    title: '发起人所属岗位',
+                    visible: true      // 默认隐藏
+                },
+                {
+                    field: 'initiateNote',
+                    align: 'center',
+                    title: '发起意见',
+                },
+                {
+                    field: 'initiateTime',
+                    align: 'center',
+                    title: '发起时间',
+                    formatter: function(value, row, index) {
+                        if (value) {
+                            return $.common.dateFormat(value, "yyyy-MM-dd HH:mm:ss");
+                        }
+                        return "-";
+                    }
+                },
+                {
+                    field: 'handleBy',
+                    align: 'center',
+                    title: '指定处理人',
+                },
+                {
+                    field: 'handleDept',
+                    align: 'center',
+                    title: '处理人所属部门',
+                    visible: true      // 默认隐藏
+                },
+                {
+                    field: 'handlePost',
+                    align: 'center',
+                    title: '处理人所属岗位',
+                    visible: true      // 默认隐藏
+                },
+                {
+                    field: 'handleNote',
+                    align: 'center',
+                    title: '处理意见',
+                },
+                {
+                    field: 'handleTime',
+                    align: 'center',
+                    title: '处理时间',
+                    formatter: function(value, row, index) {
+                        if (value) {
+                            return $.common.dateFormat(value, "yyyy-MM-dd HH:mm:ss");
+                        }
+                        return "-";
+                    }
+                },
+                {
+                    field: 'status',
+                    title: '处理状态',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';
+                        } else if (value == 2) {
+                            return '<span class="badge badge-warning">待处理</span>';
+                        } else if (value == 3) {
+                            return '<span class="badge badge-success">已通过</span>';
+                        } else if (value == 4) {
+                            return '<span class="badge badge-default">已驳回</span>';
+                        }
+                        return '<span class="badge badge-default">未知</span>';
+                    }
+                },
+                {
+                    title: '文件',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        // 检查是否有文件数据，使用 row.fileNames 字段
+                        if (row.fileNames && row.fileNames.trim() !== '') {
+                            // 有文件时显示下载按钮
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileView(\'' + row.fileNames + '\')" title="文件预览"><i class="fa fa-folder-open"></i>预览</a> ');
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileDownload(\'' + row.fileNames + '\')" title="文件下载"><i class="fa fa-download"></i>下载</a> ');
+                        } else {
+                            // 无文件时显示文本提示
+                            actions.push('<span class="text-muted">无文件</span>');
+                        }
+                        return actions.join('');
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        if (row.status == 1) { // 未提交状态
+                            actions.push('<a class="btn btn-primary btn-xs" onclick="initiateProcess(\'' + row.id + '\')" title="发起"><i class="fa fa-paper-plane"></i>发起</a>');
+                        } else if (row.status == 2) { // 待处理状态
+                            actions.push('<a class="btn btn-success btn-xs" onclick="handleProcess(\'' + row.id + '\')" title="处理"><i class="fa fa-check"></i>处理</a>');
+                            // actions.push('<a class="btn btn-success btn-xs" onclick="handleFinish(\'' + row.id + '\')" title="通过"><i class="fa fa-check"></i></a>');
+                        }
+                        return actions.join(''); // 返回按钮HTML字符串
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+    /* 关闭当前页 */
+    function closeCurrentPage() {
+        debugger;
+        var index = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(index); // 关闭当前页
+    }
+    //新增
+    function addRow() {
+        var prefix = ctx + "cost-management/servicecontract";
+        var  serviceContractId = /*[[${serviceContract.id}]]*/ 0;
+        // 添加确认对话框
+        $.modal.confirm("确认要新增吗?", function() {
+            // 新增操作
+            var data = {
+                serviceContractId: serviceContractId,
+                status: 1,
+                createBy: "",
+                initiateNote: "",
+                handleBy: ""
+            };
+            $.ajax({
+                url: prefix + "/process-service-add",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(data),
+                success: function(result) {
+                    if (result.code == web_status.SUCCESS) {
+                        $.modal.msgSuccess("新增成功");
+                        $.table.refresh();  // 刷新表格数据
+                    } else {
+                        $.modal.msgError(result.msg);
+                    }
+                }
+            });
+        });
+    }
+    //结束服务合同流程
+    function handleFinish() {
+        var serviceContractId = /*[[${serviceContract.id}]]*/ 0;  // 从Thymeleaf模板获取合同ID
+        // 添加确认对话框
+        $.modal.confirm("确认要结束该服务合同吗?", function() {
+            var data = {
+                "id": serviceContractId,  // 合同主键
+                "status": 3       // 状态改为3-已结束
+            };
+            var prefix = ctx + "cost-management/servicecontract";
+            $.ajax({
+                url: prefix + "/process-service-finish",
+                type: "POST",
+                data: data,
+                success: function(result) {
+                    if (result.code == web_status.SUCCESS) {
+                        $.modal.msgSuccess("结束成功");
+                        closeCurrentPage();// 关闭当前页面
+                        window.parent.location.reload();
+                    } else {
+                        $.modal.msgError(result.msg);
+                    }
+                }
+            });
+        });
+    }
+    function initiateProcess(serviceContractId) {
+        var prefix = ctx + "cost-management/servicecontract";
+        var url = prefix + '/process-service-initiate/' + serviceContractId; // 拼接发起流程的URL
+        $.modal.open("发起流程", url);
+    }
+    /* 处理流程页面 */
+    function handleProcess(serviceContractId) {
+        var prefix = ctx + "cost-management/servicecontract";
+        var url = prefix + '/process-service-handle/' + serviceContractId; // 拼接处理流程的URL
+        $.modal.open("处理流程", url);
+    }
+    /* 下载文件 */
+    function handleDownload(serviceContractId) {
+        var prefix = ctx + "cost-management/servicecontract";
+        $.ajax({
+            url: prefix + "/process-service-files/" + serviceContractId,
+            type: "GET",
+            success: function(result) {
+                if (result.code == 0 && result.msg) {
+                    var fileNames = result.msg;  // 文件路径在msg字段中
+                    if (fileNames) {
+                        window.location.href = ctx + "common/batchDownload?fileName=" + encodeURI(fileNames);
+                    } else {
+                        $.modal.msgWarning("该流程暂无文件");
+                    }
+                } else {
+                    $.modal.msgError("获取文件信息失败");
+                }
+            }
+        });
+    }
+    function initDetailTable() {
+        $('#bootstrap-table').bootstrapTable('refresh')
+    }
+
+
+</script>
+</html>

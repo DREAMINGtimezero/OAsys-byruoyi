@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.mapper.ProjectStatisMapper">
+
+	<resultMap type="ProjectStatis" id="ProjectStatisResult">
+		<result property="id"    column="id"    />
+		<result property="projectCode"    column="project_code"    />
+		<result property="projectName"    column="project_name"    />
+		<result property="projectDetail"    column="project_detail"    />
+		<result property="projectRemark"    column="project_remark"    />
+		<result property="status"    column="status"    />
+		<result property="createBy"    column="create_by"    />
+		<result property="createTime"    column="create_time"    />
+		<result property="updateBy"    column="update_by"    />
+		<result property="updateTime"    column="update_time"    />
+		<result property="deleteFlag"    column="delete_flag"    />
+	</resultMap>
+
+	<sql id="selectProjectStatis">
+		select id, project_code,project_name, project_detail, project_remark, status, create_by, create_time, update_by, update_time, delete_flag from t_project_statis
+	</sql>
+
+	<select id="selectProjectStatisById" resultType="com.ruoyi.project.domain.ProjectStatis">
+		<include refid="selectProjectStatis"/>
+		where id = #{id} and delete_flag = 0
+	</select>
+
+	<select id="selectProjectStatisList" parameterType="ProjectStatis" resultMap="ProjectStatisResult">
+		<include refid="selectProjectStatis"/>
+		<where>
+			delete_flag = 0
+			<if test="id != null"> and id = #{id}</if>
+			<if test="projectCode != null  and projectCode != ''"> and project_code = #{projectCode}</if>
+			<if test="projectName != null  and projectName != ''"> and project_name like concat('%',#{projectName},'%')</if>
+			<if test="projectDetail != null  and projectDetail != ''"> and project_detail like concat('%',#{projectDetail},'%')</if>
+			<if test="projectRemark != null  and projectRemark != ''"> and project_remark like concat('%',#{projectRemark},'%')</if>
+			<if test="status != null "> and status = #{status}</if>
+			<if test="beginCreateTime != null and beginCreateTime != ''">and create_time >= #{beginCreateTime}</if>
+			<if test="endCreateTime != null and endCreateTime != ''">and create_time <![CDATA[ <= ]]> #{endCreateTime}</if>
+			<!-- 未提交的数据只能自己查看，已提交的数据所有人都可以查看 -->
+			<if test="createBy != null and createBy != ''">and(create_by = #{createBy} OR status != 1)</if>
+		</where>
+	</select>
+
+	<insert id="insertProjectStatis" parameterType="ProjectStatis" useGeneratedKeys="true" keyProperty="id">
+		insert into t_project_statis
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="projectCode != null and projectCode != ''">project_code,</if>
+		    <if test="projectName != null">project_name,</if>
+			<if test="projectDetail != null">project_detail,</if>
+			<if test="projectRemark != null">project_remark,</if>
+			<if test="status != null">status,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			<if test="createTime != null">create_time,</if>
+			<if test="updateBy != null">update_by,</if>
+			<if test="updateTime != null">update_time,</if>
+			<if test="deleteFlag != null">delete_flag,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="projectCode != null and projectCode != ''">#{projectCode},</if>
+		    <if test="projectName != null">#{projectName},</if>
+			<if test="projectDetail != null">#{projectDetail},</if>
+			<if test="projectRemark != null">#{projectRemark},</if>
+			<if test="status != null">#{status},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			<if test="createTime != null">#{createTime},</if>
+			<if test="updateBy != null">#{updateBy},</if>
+			<if test="updateTime != null">#{updateTime},</if>
+			<if test="deleteFlag != null">#{deleteFlag},</if>
+		</trim>
+	</insert>
+
+	<update id="updateProjectStatis" parameterType="ProjectStatis">
+		update t_project_statis
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+		    <if test="projectName != null">project_name = #{projectName},</if>
+			<if test="projectDetail != null">project_detail = #{projectDetail},</if>
+			<if test="projectRemark != null">project_remark = #{projectRemark},</if>
+			<if test="status != null">status = #{status},</if>
+			<if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+			<if test="createTime != null">create_time = #{createTime},</if>
+			<if test="updateBy != null">update_by = #{updateBy},</if>
+			<if test="updateTime != null">update_time = #{updateTime},</if>
+		</trim>
+		where id = #{id}
+	</update>
+
+	<delete id="deleteProjectStatisByIds" parameterType="ProjectStatis">
+		update t_project_statis set delete_flag = 1,update_by = #{updateBy} where id in
+		<foreach item="id" collection="ids" separator="," open="(" close=")" index="">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

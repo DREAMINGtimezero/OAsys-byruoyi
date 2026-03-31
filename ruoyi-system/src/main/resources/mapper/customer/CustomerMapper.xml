@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.customer.mapper.CustomerMapper">
+    <resultMap id="CustomerResult" type="Customer">
+        <result property="id" column="id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="deleteFlag" column="delete_flag"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="phone" column="phone"/>
+        <result property="wechat" column="wechat"/>
+        <result property="email" column="email"/>
+        <result property="channel" column="channel"/>
+        <result property="capital" column="capital"/>
+        <result property="mode" column="mode"/>
+        <result property="dataSource" column="data_source"/>
+        <result property="devStatus" column="dev_status"/>
+    </resultMap>
+
+    <sql id="selectCustomerInfo">
+        <trim suffixOverrides=",">
+            t_customer.customer_name AS customer_name,
+            t_customer.phone AS phone,
+            t_customer.wechat AS wechat,
+            t_customer.email AS email,
+            t_customer.channel AS channel,
+            t_customer.capital AS capital,
+            t_customer.mode AS mode,
+            t_customer.data_source AS data_source,
+            t_customer.dev_status AS dev_status
+        </trim>
+    </sql>
+    <sql id="selectCustomerVo">
+        select id,
+               create_by,
+               update_by,
+               create_time,
+               update_time,
+               delete_flag,
+               customer_name,
+               phone,
+               wechat,
+               email,
+               channel,
+               capital,
+               mode,
+               channel,
+               data_source,
+               dev_status
+        from t_customer
+    </sql>
+    <select id="selectCustomerById" parameterType="Long" resultMap="CustomerResult">
+        <include refid="selectCustomerVo"/>
+        where id = #{id}
+    </select>
+    <!-- 查询主表的客户数据，并且关联子表，查出子表沟通日期最晚的进展字段：progress-->
+    <select id="selectCustomerList" parameterType="Customer" resultMap="CustomerResult">
+        select
+        tc.id,
+        tc.create_by,
+        tc.update_by,
+        tc.create_time,
+        tc.update_time,
+        tc.delete_flag,
+        tc.customer_name,
+        tc.phone,
+        tc.wechat,
+        tc.email,
+        tc.channel,
+        tc.capital,
+        tc.mode,
+        tc.data_source,
+        tc.dev_status,
+        tcs_progress.progress
+        from t_customer tc
+        left join (
+        -- 子表筛选未删除的数据，并获取每个客户最新沟通记录
+        select
+        customer_id,
+        progress,
+        row_number() over (partition by customer_id order by communication_time desc) as rn
+        from t_customer_sub tcs
+        where tcs.delete_flag = 0  -- 子表只查未删除的记录
+        ) tcs_progress on tc.id = tcs_progress.customer_id and tcs_progress.rn = 1
+        <where>
+            tc.delete_flag = 0
+            <if test="customerName != null and customerName != '' ">and tc.customer_name like concat('%', #{customerName}, '%')</if>
+            <if test="createBy != null and createBy != '' ">and tc.create_by = #{createBy}</if>
+            <if test="phone != null">and tc.phone like concat('%', #{phone}, '%')</if>
+            <if test="wechat != null">and tc.wechat like concat('%', #{wechat}, '%')</if>
+            <if test="email != null">and tc.email like concat('%', #{email}, '%')</if>
+            <if test="channel != null">and tc.channel like concat('%', #{channel}, '%')</if>
+            <if test="capital != null">and tc.capital like concat('%', #{capital}, '%')</if>
+            <if test="mode != null">and tc.mode like concat('%', #{mode}, '%')</if>
+            <if test="dataSource != null">and tc.data_source = #{dataSource}</if>
+            <if test="devStatus != null">and tc.dev_status = #{devStatus}</if>
+            <if test="params.beginTime != null and params.beginTime != ''">AND tc.create_time >= #{params.beginTime}</if>
+            <if test="params.endTime != null and params.endTime != ''">AND tc.create_time &lt;= #{params.endTime}</if>
+        </where>
+        ORDER BY tc.create_time DESC
+    </select>
+    <insert id="insertCustomer" parameterType="Customer" useGeneratedKeys="true" keyProperty="id">
+        insert into t_customer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="customerName != null">customer_name,</if>
+            <if test="phone != null">phone,</if>
+            <if test="wechat != null">wechat,</if>
+            <if test="email != null">email,</if>
+            <if test="channel != null">channel,</if>
+            <if test="capital != null">capital,</if>
+            <if test="mode != null">mode,</if>
+            <if test="dataSource != null">data_source,</if>
+            <if test="devStatus != null">dev_status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="customerName != null">#{customerName},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="wechat != null">#{wechat},</if>
+            <if test="email != null">#{email},</if>
+            <if test="channel != null">#{channel},</if>
+            <if test="capital != null">#{capital},</if>
+            <if test="mode != null">#{mode},</if>
+            <if test="dataSource != null">#{dataSource},</if>
+            <if test="devStatus != null">#{devStatus},</if>
+        </trim>
+    </insert>
+    <update id="updateCustomer" parameterType="Customer">
+        update t_customer
+        <set>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="wechat != null">wechat = #{wechat},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="channel != null">channel = #{channel},</if>
+            <if test="capital != null">capital = #{capital},</if>
+            <if test="mode != null">mode = #{mode},</if>
+            <if test="dataSource != null">data_source = #{dataSource},</if>
+            <if test="devStatus != null">dev_status = #{devStatus},</if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="deleteCustomerById" parameterType="Long">
+        update t_customer
+        set delete_flag = 1,
+            update_by=#{loginName}
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteCustomerByIds" parameterType="String">
+        update t_customer set delete_flag = 1,update_time = sysdate()
+        where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="selectCustomerExportList" resultType="com.ruoyi.customer.domain.CustomerExport">
+        WITH idList AS (
+        SELECT id FROM t_customer
+        <where>
+            delete_flag = 0
+            <if test="customerName != null">and customer_name like concat('%', #{customerName}, '%')</if>
+            <if test="phone != null">and phone like concat('%', #{phone}, '%')</if>
+            <if test="wechat != null">and wechat like concat('%', #{wechat}, '%')</if>
+            <if test="email != null">and email like concat('%', #{email}, '%')</if>
+            <if test="channel != null">and channel like concat('%', #{channel}, '%')</if>
+            <if test="capital != null">and capital like concat('%', #{capital}, '%')</if>
+            <if test="mode != null">and mode like concat('%', #{mode}, '%')</if>
+            <if test="dataSource != null">and data_source = #{dataSource}</if>
+            <if test="devStatus != null">and dev_status = #{devStatus}</if>
+            <if test="params.beginTime != null and params.beginTime != ''">AND create_time >= #{params.beginTime}</if>
+            <if test="params.endTime != null and params.endTime != ''">AND create_time &lt;= #{params.endTime}</if>
+        </where>
+        ),
+        latest_customer_sub AS (
+        SELECT t1.customer_id,t1.progress
+        FROM t_customer_sub t1
+        INNER JOIN (
+        SELECT customer_id, MAX(create_time) as last_create_time FROM t_customer_sub
+        WHERE delete_flag = 0
+        GROUP BY customer_id
+        ) t2 ON t1.customer_id = t2.customer_id AND t1.create_time= t2.last_create_time
+        WHERE t1.delete_flag = 0
+        )
+
+        SELECT
+        st.progress as progress,
+        <include refid="selectCustomerInfo"/>
+        FROM t_customer
+        LEFT JOIN
+        latest_customer_sub as st
+        ON t_customer.id =
+        st.customer_id
+        WHERE t_customer.id in (select id from idList)
+    </select>
+</mapper>

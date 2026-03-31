@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('办公用品子列表')" />
+    <th:block th:include="include :: datetimepicker-css"/>
+</head>
+<body class="gray-bg">
+<div class="main-content">
+    <form id="form-add" class="form-horizontal" th:object="${officeSupplies}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <h4 class="form-header h4">[[*{suppliesName}]]</h4>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label is-required">用品名称：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="suppliesName" th:field="*{suppliesName}"  class="form-control"
+                               type="text"
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">单价：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="unitPrice" th:field="*{unitPrice}"  class="form-control" type="number">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label is-required">数量：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="quantity" th:field="*{quantity}"  class="form-control" type="number">
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label is-required">总金额：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="total_cost" th:field="*{totalCost}"  class="form-control" type="number">
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label is-required">描述信息：</label>
+                    <div class="col-sm-8">
+                        <textarea readonly name="description" th:field="*{description}"
+                                  class="form-control" required> </textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label ">创建人：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="createBy" th:field="*{createBy}"  class="form-control"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h4 class="form-header h4">报销处理流程</h4>
+        <div class="row">
+            <div class="col-sm-12">
+                <div th:if="${officeSupplies.status != 3}">
+                    <button id="addButton" type="button" class="btn btn-white btn-sm" onclick="addRow()">
+                        <i class="fa fa-plus"> 新增流程</i>
+                    </button>
+                    <button type="button" class="btn btn-white btn-sm" onclick="overProcess()">
+                        <i class="fa fa-minus"> 结束流程</i>
+                    </button>
+                </div>
+                <div class="col-sm-12 select-table table-striped">
+                    <table id="bootstrap-table"></table>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div class="row">
+    <div class="col-sm-offset-5 col-sm-10">
+        <button type="button" class="btn btn-sm btn-danger" onclick="closeCurrentPage()"><i class="fa fa-reply-all"></i>关 闭
+        </button>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: datetimepicker-js"/>
+<th:block th:include="include :: bootstrap-select-js"/>
+<script th:src="@{/js/jquery.tmpl.js}"></script>
+<script th:src="@{/js/axios.min.js}"></script>
+<script th:inline="javascript">
+    const prefix = ctx + "cost-management/office-supplies";
+    const officeSuppliesId = /*[[${officeSupplies.id}]]*/undefined;
+    const mainStatus = /*[[${officeSupplies.status}]]*/undefined;
+
+    $(function() {
+        let options = {
+            url: prefix + "/sub-list",
+            createUrl: prefix + "/sub-add/{id}",
+            updateUrl: prefix + "/edit/{id}",
+            removeUrl: prefix + "/remove",
+            exportUrl: prefix + "/export",
+            modalName: "办公用品子表",
+            method: 'post',
+            pagination: false,
+            showSearch: false,
+            onLoadSuccess: function (data) {
+            },
+            sidePagination: "server",
+            contentType: "application/x-www-form-urlencoded",
+            queryParams: {
+                relativeId: officeSuppliesId,
+            },
+            columns: [
+                {
+                    field: 'id',
+                    align: 'center',
+                    title: '序号',
+                    visible: false,
+                    class: 'hide-column',
+                    formatter: function (value, row, index) {
+                        return `<input name="rowId" type="hidden" value="${value}"/>`
+                    }
+                },
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: '发起人',
+                },
+                {
+                    field: 'createPost',
+                    align: 'center',
+                    title: '发起人所属岗位',
+                },
+                {
+                    field: 'createDept',
+                    align: 'center',
+                    title: '发起人所属部门',
+                },
+                {
+                    field: 'handleBy',
+                    align: 'center',
+                    title: '处理人',
+                },
+                {
+                    field: 'handlePost',
+                    align: 'center',
+                    title: '处理人所属岗位',
+                },
+                {
+                    field: 'handleDept',
+                    align: 'center',
+                    title: '处理人所属部门',
+                },
+                {
+                    field: 'initiateTime',
+                    align: 'center',
+                    title: '发起时间',
+                },
+                {
+                    field: 'initiateNote',
+                    align: 'center',
+                    title: '发起意见',
+                    formatter: function (value, row, index) {
+                        if ($.common.isEmpty(value)) {
+                            value = '-';
+                        }
+                        return `<span class="note" title="${value}">${value}</span>`
+                    }
+                },
+                {
+                    field: 'handleTime',
+                    align: 'center',
+                    title: '处理时间',
+                },
+                {
+                    field: 'handleNote',
+                    align: 'center',
+                    title: '处理意见',
+                    formatter: function (value, row, index) {
+                        if ($.common.isEmpty(value)) {
+                            value = '-';
+                        }
+                        return `<span class="note" title="${value}">${value}</span>`
+                    }
+                },
+                {
+                    field: 'fileNames',
+                    align: 'center',
+                    title: '文件访问路径',
+                    visible: false,
+                },
+                {
+                    field: 'status',
+                    title: '处理状态',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';
+                        } else if (value == 2) {
+                            return '<span class="badge badge-warning">待处理</span>';
+                        } else if (value == 3) {
+                            return '<span class="badge badge-success">已通过</span>';
+                        } else if (value == 4) {
+                            return '<span class="badge badge-default">已驳回</span>';
+                        }
+                        return '<span class="badge badge-default">未知</span>';
+                    }
+                },
+                {
+                    title: '文件',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        // 检查是否有文件数据，使用 row.fileNames 字段
+                        if ($.common.isNotEmpty(row.fileNames) && row.fileNames.trim() !== '') {
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileView(\'' + row.fileNames + '\')" title="文件预览"><i class="fa fa-folder-open"></i>预览</a> ');
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileDownload(\'' + row.fileNames + '\')" title="文件下载"><i class="fa fa-download"></i>下载</a>');
+                        } else {
+                            actions.push('<span class="text-muted">无文件</span>');
+                        }
+                        return actions.join('');
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        let actions = [];
+                        if (row.status === 1) { // 未提交状态
+                            actions.push(`<a class="btn btn-primary btn-xs" onclick="submitProcess(${row.id})" title="发起"><i class="fa fa-paper-plane"></i>发起</a>`);
+                        } else if (row.status === 2) { // 待处理状态
+                            actions.push(`<a class="btn btn-success btn-xs" onclick="handleProcess(${row.id})" title="处理"><i class="fa fa-check"></i>处理</a>`);
+                        }
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+    $("#form-add").validate({
+        focusCleanup: true
+    });
+    /* 关闭当前页 */
+    function closeCurrentPage() {
+        debugger;
+        var index = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(index); // 关闭当前页
+    }
+    function addRow() {
+        $.modal.confirm("确定要新增一项？", function () {
+            const url = prefix + `/sub-add/${officeSuppliesId}`;
+            axios.get(url).then(
+                response => {
+                    if (response.data.code === 0) {
+                        $("button[name='refresh']").click();
+                    } else {
+                        console.error(`新增失败:`, response);
+                        if (response.data['msg'])
+                            $.modal.msgError(`新增失败:${response.data.msg}`);
+                    }
+                }
+            ).catch(
+                error => {
+                    console.error(`操作失败!${error}`);
+                    $.modal.msgError("操作失败!");
+                }
+            );
+        });
+    }
+    function handleDownload(id) {
+        // 先获取该流程的文件信息
+        $.ajax({
+            url: prefix + `/sub-files/${id}`,
+            type: "GET",
+            success: function(result) {
+                if (result.code == 0 && result.msg) {
+                    var fileNames = result.msg;  // 文件路径在msg字段中
+                    if (fileNames) {
+                        window.location.href = ctx + "common/batchDownload?fileName=" + encodeURI(fileNames);
+                    } else {
+                        $.modal.msgWarning("该流程暂无文件");
+                    }
+                } else {
+                    $.modal.msgError("获取文件信息失败");
+                }
+            }
+        });
+    }
+
+    function overProcess() {
+        $.modal.confirm("确认要结束流程吗?", function() {
+            var data = {
+                "id": officeSuppliesId,  // 合同主键
+                "status": 3       // 状态改为3-已结束
+            };
+
+            $.ajax({
+                url: prefix + "/sub-finish",
+                type: "POST",
+                data: data,
+                success: function(result) {
+                    if (result.code == web_status.SUCCESS) {
+                        $.modal.msgSuccess("操作成功");
+                        closeCurrentPage();// 关闭当前页面
+                        window.parent.location.reload();
+                    } else {
+                        $.modal.msgError(result.msg);
+                    }
+                }
+            });
+        });
+    }
+    function handleProcess(id) {
+        window.table.set();
+        let url = prefix + `/sub-handle/${id}`;
+        $.modal.open("处理" + window.table.options.modalName, url, undefined, undefined);
+    }
+
+    function submitProcess(id) {
+        window.table.set();
+        let url = prefix + `/sub-submit/${id}`;
+        $.modal.open("提交" + window.table.options.modalName, url, undefined, undefined);
+    }
+    function initDetailTable() {
+        $('#bootstrap-table').bootstrapTable('refresh')
+    }
+
+
+</script>
+</body>
+</html>

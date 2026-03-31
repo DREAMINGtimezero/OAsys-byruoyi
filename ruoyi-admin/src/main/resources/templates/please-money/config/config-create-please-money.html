@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+	<th:block th:include="include :: header('创建请款')" />
+	<th:block th:include="include :: bootstrap-fileinput-css" />
+</head>
+<body class="">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<form class="form-horizontal m" id="config-create-please-money">
+			<input name="id" th:value="${id}" type="hidden">
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">项目代码：项目名称</label>
+				<div class="col-sm-8">
+					<select class="form-control" name="projectCode">
+						<option value="">请选择</option>
+					</select>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<th:block th:include="include :: footer" />
+	<th:block th:include="include :: bootstrap-fileinput-js" />
+	<script type="text/javascript">
+		var prefix = ctx + "please-money/config";
+		$("#config-create-please-money").validate({
+			rules:{
+				projectCode:{
+					required:true
+				}
+			},
+		});
+
+		$(function() {
+			initProjectCode();
+		});
+
+		// 初始化项目下拉框
+		function initProjectCode(){
+			$.ajax({
+				url: ctx + "project/statis/list",
+				type: "post",
+				dataType: "json",
+				data: {
+					"status": 2,
+					"pageNum": 1,
+					"pageSize": 1000
+				},
+				success: function(result) {
+					debugger;
+					if (result.code == web_status.SUCCESS) {
+						var data = result.rows;
+						for (var i = 0; i < data.length; i++) {
+							$("select[name='projectCode']").append(
+									"<option value='" + data[i].projectCode + "'>" + data[i].projectCode + "：" + data[i].projectName + "</option>");}
+					}
+				}
+			})
+		}
+
+		function submitHandler() {
+			if ($.validate.form()) {
+				$.operate.save(prefix + "/config-add", $('#config-create-please-money').serialize());
+			}
+	    }
+	</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+#bootstrap-table > thead {
+    background-color: #3C8DBC;;
+    color: #FFF; /* 文字颜色 */
+}
+#bootstrap-table > tbody > tr.detail-view > td > div.bootstrap-table.bootstrap3 > div.fixed-table-container > div.fixed-table-body > table > thead{
+    background-color: #F8AC59;
+    color: #FFF; /* 文字颜色 */
+}

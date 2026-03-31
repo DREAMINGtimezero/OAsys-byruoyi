@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.myservice.mapper.MyServiceMapper">
+
+    <resultMap type="MyService" id="MyServiceResult">
+        <result property="projectCode"    column="project_code"    />
+        <result property="serviceCode"    column="service_code"    />
+        <result property="title"    column="title"    />
+        <result property="description"    column="description"    />
+        <result property="note"    column="note"    />
+        <result property="status"    column="status"    />
+        <result property="money"    column="money"    />
+        <result property="costType"    column="cost_type"    />
+        <result property="id"    column="id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <sql id="selectMyServiceVo">
+            <trim prefix="" suffix="" prefixOverrides="" suffixOverrides=",">
+            t_my_service.project_code,
+            t_my_service.service_code,
+            t_my_service.title,
+            t_my_service.description,
+            t_my_service.note,
+            t_my_service.status,
+            t_my_service.money,
+            t_my_service.cost_type,
+            t_my_service.id,
+            t_my_service.create_by,
+            t_my_service.create_time,
+            t_my_service.update_by,
+            t_my_service.update_time,
+            t_my_service.delete_flag
+            </trim>
+    </sql>
+
+    <sql id="linkedQueryOft_project_statis">
+        select
+        <include refid="selectMyServiceVo"/>
+        ,project_name
+        from t_my_service left join
+        (select project_code,project_name from t_project_statis  where  delete_flag=0) as t_project_statis
+        on t_my_service.project_code = t_project_statis.project_code
+    </sql>
+    <select id="selectMyServiceList" parameterType="MyService" resultMap="MyServiceResult">
+        <include refid="linkedQueryOft_project_statis"/>
+        <where>
+            <if test="createBy!=null and createBy!=''">
+                EXISTS (SELECT 1 FROM t_my_service_sub tsb WHERE t_my_service.id = tsb.service_id
+                and tsb.delete_flag = 0 and ( tsb.create_by = #{createBy} OR tsb.handle_by = #{createBy} ))
+            </if>
+            <if test="projectCode != null  and projectCode != ''">and t_my_service.project_code = #{projectCode}</if>
+            <if test="serviceCode != null  and serviceCode != ''">and service_code like concat('%',#{serviceCode},'%')
+            </if>
+            <if test="title != null  and title != ''">and title like concat('%',#{title},'%')</if>
+            <if test="description != null  and description != ''">and description like concat('%',#{description},'%')
+            </if>
+            <if test="note != null  and note != ''">and note like concat('%',#{note},'%')</if>
+            <if test="money != null ">and money = #{money}</if>
+            <if test="costType != null ">and cost_type = #{costType}</if>
+            <if test="deleteFlag != null ">and delete_flag = #{deleteFlag}</if>
+            <if test="params.startTime != null and params.startTime != ''">and create_time &gt; #{params.startTime}</if>
+            <if test="params.endTime != null and params.endTime != ''">and create_time &lt; #{params.endTime}</if>
+            <if test="statusList != null and statusList.length!=0">
+                and status in
+                <foreach item="status" collection="statusList" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="selectMyServiceById" parameterType="Long" resultMap="MyServiceResult">
+        <include refid="linkedQueryOft_project_statis"/>
+        where id = #{id} and delete_flag = 0
+    </select>
+
+    <insert id="insertMyService" parameterType="MyService" useGeneratedKeys="true" keyProperty="id">
+        insert into t_my_service
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">project_code,</if>
+            <if test="serviceCode != null and serviceCode != ''">service_code,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="note != null">note,</if>
+            <if test="status != null">status,</if>
+            <if test="money != null">money,</if>
+            <if test="costType != null">cost_type,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">#{projectCode},</if>
+            <if test="serviceCode != null and serviceCode != ''">#{serviceCode},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="note != null">#{note},</if>
+            <if test="status != null">#{status},</if>
+            <if test="money != null">#{money},</if>
+            <if test="costType != null">#{costType},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateMyService" parameterType="MyService">
+        update t_my_service
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+            <if test="serviceCode != null and serviceCode != ''">service_code = #{serviceCode},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="note != null">note = #{note},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="money != null">money = #{money},</if>
+            <if test="costType != null">cost_type = #{costType},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteMyServiceById" parameterType="Long">
+        update t_my_service
+        set delete_flag = 1,
+            update_by   = #{updateBy}
+        where id = #{id}
+    </update>
+
+    <update id="deleteMyServiceByIds" parameterType="String">
+        update t_my_service set delete_flag=1,update_by=#{updateBy}
+        where
+            id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectDeleteAble" resultType="java.lang.Integer">
+        select count(*) from t_my_service
+        <where>
+            id in
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            and delete_flag = 0
+            and status=1
+        </where>
+    </select>
+</mapper>

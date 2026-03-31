@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.contract.mapper.ContractMapper">
+
+    <resultMap type="Contract" id="ContractResult">
+        <result property="id"    column="id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="contractId"    column="contract_id"    />
+        <result property="contractName"    column="contract_name"    />
+        <result property="projectCode"    column="project_code"    />
+        <result property="status"    column="status"    />
+        <result property="description"    column="description"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <resultMap type="ContractProcess" id="ContractProcessResult">
+        <result property="id"    column="id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="initiateTime"    column="initiate_time"    />
+        <result property="initiateNote"    column="initiate_note"    />
+        <result property="handleBy"    column="handle_by"    />
+        <result property="handleTime"    column="handle_time"    />
+        <result property="handleNote"    column="handle_note"    />
+        <result property="status"    column="status"    />
+        <result property="contractId"    column="contract_id"    />
+        <result property="fileAccess"    column="file_access"    />
+    </resultMap>
+
+    <sql id="selectContractVo">
+        select id, create_by, update_by, create_time, update_time, delete_flag, contract_id, contract_name, project_code, status, description, note from t_contract
+    </sql>
+
+    <sql id="selectContractProcessVo">
+        select id, create_by, update_by, create_time, update_time, delete_flag, initiate_time, initiate_note, handle_by, handle_time, handle_note, status, contract_id, file_names from t_contract_process
+    </sql>
+
+    <select id="selectContractList" parameterType="Contract" resultMap="ContractResult">
+        select tc.id, tc.create_by, tc.update_by, tc.create_time, tc.update_time, tc.delete_flag, tc.contract_id,
+        tc.contract_name, tc.project_code, tps.project_name, tc.status, tc.description, tc.note
+        from t_contract tc left join t_project_statis tps on tc.project_code = tps.project_code
+        <where>
+            <if test="createBy != null  and createBy != ''">
+                EXISTS (
+                SELECT 1 FROM t_contract_process tcp  WHERE  tc.id = tcp.contract_id
+                    and tcp.delete_flag = 0 and (tcp.create_by = #{createBy} OR tcp.handle_by = #{createBy})
+                )
+            </if>
+            and tc.delete_flag = 0
+            <if test="id != null  and id != ''"> and tc.id = #{id}</if>
+            <if test="contractId != null  and contractId != ''"> and tc.contract_id = #{contractId}</if>
+            <if test="contractName != null  and contractName != ''"> and tc.contract_name like concat('%', #{contractName}, '%')</if>
+            <if test="projectCode != null  and projectCode != ''"> and tc.project_code = #{projectCode}</if>
+            <if test="status != null "> and tc.status = #{status}</if>
+            <if test="description != null and description != ''">and tc.description like concat('%', #{description}, '%')</if>
+            <if test="note != null  and note != ''"> and tc.note = #{note}</if>
+            <if test="params.beginTime != null and params.beginTime != ''">AND tc.create_time >= #{params.beginTime}</if>
+            <if test="params.endTime != null and params.endTime != ''">AND tc.create_time &lt;= #{params.endTime}</if>
+        </where>
+    </select>
+
+    <select id="selectContractById" parameterType="Long" resultMap="ContractResult">
+        <include refid="selectContractVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectContractProcessList" resultType="com.ruoyi.contract.domain.ContractProcess">
+        <include refid="selectContractProcessVo"/>
+        <where>
+            delete_flag = '0'
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+            <if test="initiateTime != null "> and initiate_time = #{initiateTime}</if>
+            <if test="initiateNote != null  and initiateNote != ''"> and initiate_note = #{initiateNote}</if>
+            <if test="handleBy != null  and handleBy != ''"> and handle_by = #{handleBy}</if>
+            <if test="handleTime != null "> and handle_time = #{handleTime}</if>
+            <if test="handleNote != null  and handleNote != ''"> and handle_note = #{handleNote}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="contractId != null "> and contract_id = #{contractId}</if>
+            <if test="fileAccess != null  and fileAccess != ''"> and file_access = #{fileAccess}</if>
+        </where>
+    </select>
+
+    <select id="selectContractProcessById" resultType="com.ruoyi.contract.domain.ContractProcess">
+        select * from t_contract_process where id = #{id}
+    </select>
+
+    <insert id="insertContract" parameterType="Contract" useGeneratedKeys="true" keyProperty="id">
+        insert into t_contract
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="contractId != null and contractId != ''">contract_id,</if>
+            <if test="contractName != null and contractName != ''">contract_name,</if>
+            <if test="projectCode != null and projectCode != ''">project_code,</if>
+            <if test="status != null">status,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="note != null">note,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="contractId != null and contractId != ''">#{contractId},</if>
+            <if test="contractName != null and contractName != ''">#{contractName},</if>
+            <if test="projectCode != null and projectCode != ''">#{projectCode},</if>
+            <if test="status != null">#{status},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="note != null">#{note},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertContractProcess" parameterType="ContractProcess" useGeneratedKeys="true" keyProperty="id">
+        insert into t_contract_process
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="initiateTime != null">initiate_time,</if>
+            <if test="initiateNote != null">initiate_note,</if>
+            <if test="handleBy != null">handle_by,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="handleNote != null">handle_note,</if>
+            <if test="status != null">status,</if>
+            <if test="contractId != null">contract_id,</if>
+            <if test="fileNames != null">file_names,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="initiateTime != null">#{initiateTime},</if>
+            <if test="initiateNote != null">#{initiateNote},</if>
+            <if test="handleBy != null">#{handleBy},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="handleNote != null">#{handleNote},</if>
+            <if test="status != null">#{status},</if>
+            <if test="contractId != null">#{contractId},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+        </trim>
+    </insert>
+
+    <update id="updateContract" parameterType="Contract">
+        update t_contract
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="contractId != null and contractId != ''">contract_id = #{contractId},</if>
+            <if test="contractName != null and contractName != ''">contract_name = #{contractName},</if>
+            <if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updateContractProcess" parameterType="ContractProcess" >
+        update t_contract_process
+        <set>
+            <if test="initiateTime != null">initiate_time = #{initiateTime},</if>
+            <if test="initiateNote != null">initiate_note = #{initiateNote},</if>
+            <if test="handleBy != null">handle_by = #{handleBy},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="handleNote != null">handle_note = #{handleNote},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="fileNames != null and fileNames != ''">file_names = #{fileNames},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteContractById" parameterType="Long">
+        delete from t_contract where id = #{id}
+    </delete>
+
+    <delete id="deleteContractByIds" parameterType="Contract">
+        update t_contract
+        set delete_flag = 1,
+        update_time = sysdate(),
+        update_by = #{updateBy}
+        where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

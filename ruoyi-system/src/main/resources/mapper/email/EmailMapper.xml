@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.email.mapper.EmailMapper">
+    <resultMap type="Mail" id="EmailResult">
+        <result property="id"    column="id"    />
+        <result property="emailSubject"    column="email_subject"    />
+        <result property="emailDetail"    column="email_detail"    />
+        <result property="fileNames"    column="file_names"    />
+        <result property="emailBy"    column="email_by"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="emailTime"    column="email_time"    />
+        <result property="status"    column="status"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <sql id="selectEmailVo">
+        select id, email_subject, email_detail, file_names, email_by, create_by, create_time, email_time, status, update_by, update_time, delete_flag, note from t_email
+    </sql>
+
+    <select id="selectEmailList" parameterType="Mail" resultMap="EmailResult">
+        <include refid="selectEmailVo"/>
+        <where>
+            delete_flag = 0
+            <if test="createBy != null  and createBy != ''">and create_by = #{createBy}</if>
+            <if test="id != null"> and id = #{id}</if>
+            <if test="emailSubject != null  and emailSubject != ''"> and email_subject = #{emailSubject}</if>
+            <if test="emailDetail != null  and emailDetail != ''"> and email_detail = #{emailDetail}</if>
+            <if test="fileNames != null  and fileNames != ''"> and file_names = #{fileNames}</if>
+            <if test="emailBy != null  and emailBy != ''"> and email_by = #{emailBy}</if>
+            <if test="emailTime != null "> and email_time = #{emailTime}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+            <if test="beginCreateTime != null and beginCreateTime != ''">and create_time >= #{beginCreateTime}</if>
+            <if test="endCreateTime != null and endCreateTime != ''">and create_time <![CDATA[ <= ]]> #{endCreateTime}</if>
+        </where>
+    </select>
+
+    <select id="selectEmailById" parameterType="Long" resultMap="EmailResult">
+        <include refid="selectEmailVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertEmail" parameterType="Mail" useGeneratedKeys="true" keyProperty="id">
+        insert into t_email
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="emailSubject != null and emailSubject != ''">email_subject,</if>
+            <if test="emailDetail != null and emailDetail != ''">email_detail,</if>
+            <if test="fileNames != null">file_names,</if>
+            <if test="emailBy != null">email_by,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="emailTime != null">email_time,</if>
+            <if test="status != null">status,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="note != null">note,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="emailSubject != null and emailSubject != ''">#{emailSubject},</if>
+            <if test="emailDetail != null and emailDetail != ''">#{emailDetail},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+            <if test="emailBy != null">#{emailBy},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="emailTime != null">#{emailTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="note != null">#{note},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEmail" parameterType="Mail">
+        update t_email
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="emailSubject != null and emailSubject != ''">email_subject = #{emailSubject},</if>
+            <if test="emailDetail != null and emailDetail != ''">email_detail = #{emailDetail},</if>
+            <if test="fileNames != null">file_names = #{fileNames},</if>
+            <if test="emailBy != null">email_by = #{emailBy},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="emailTime != null">email_time = #{emailTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteEmailByIds" parameterType="String">
+        update t_email set delete_flag = 1,update_by = #{updateBy} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

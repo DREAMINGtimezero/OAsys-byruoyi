@@ -1,0 +1,792 @@
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>华钜峰工程技术(上海)有限公司 - 专业工程技术服务提供商</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script th:inline="javascript"> var ctx = [[@{/}]]; var lockscreen = [[${session.lockscreen}]]; if(lockscreen){window.top.location=ctx+"lockscreen";} </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0A2463',
+                        accent: '#3E92CC',
+                        dark: '#121212',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': {transform: 'translateY(0)'},
+                            '50%': {transform: 'translateY(-10px)'},
+                        }
+                    }
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .text-shadow-lg {
+                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+            }
+
+            .bg-gradient-blue {
+                background: linear-gradient(135deg, #A4d3ee 0%, #A4d3ee 100%);
+            }
+
+            .clip-path-slant {
+                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            }
+        }
+        /* 父容器：直接定义2行2列网格 */
+        /* 子图片：自适应网格单元格 */
+        .fa-admin:before {
+            content: "\f007";
+        }
+
+        .other-company1 {
+            height: 220px;
+            width: 450px;
+            margin: 0 auto;
+        }
+
+        .other-company2 {
+            height: 220px;
+            width: 415px;
+            margin: 0 auto;
+        }
+
+        .pt-16 {
+            padding-top: 2rem;
+        }
+
+        .hover-underline {
+            position: relative;
+            display: inline-block;
+        }
+
+        .hover-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: #ffffffcc;
+            transition: width 0.4s ease-in-out;
+        }
+
+        .hover-underline:hover::after {
+            width: 100%;
+        }
+        .bg-\[rgb\(255\2c 122\2c 40\)\] {
+            --tw-bg-opacity: 1;
+            background: linear-gradient(135deg, rgb(186 57 27) 0%, #000000 100%);
+        }
+    </style>
+</head>
+<body class="font-inter bg-light text-dark antialiased">
+<!-- 导航栏 -->
+<header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300 bg-transparent">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center">
+                <div>
+                    <img src="../img/huajufeng/a01.png" style="width: 90px;height: 50px;left: -10px;position: relative;">
+                </div>
+            </div>
+
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex space-x-8">
+                <a href="#home"
+                   class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg bg-[rgb(208,60,60)] transition-colors"
+                   style="color: #FFFFFF">首页</a>
+                <a th:href="@{website/overview}" target="_parent"
+                   class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors"
+                   style="color: #FFFFFF">产品概览</a>
+                <a th:href="@{website/service}" target="_parent"
+                   class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors"
+                   style="color: #FFFFFF">技术服务</a>
+                <a th:href="@{website/cases}" target="_parent"
+                   class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors"
+                   style="color: #FFFFFF">成功案例</a>
+                <a th:href="@{website/honor}" target="_parent"
+                   class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors"
+                   style="color: #FFFFFF">荣誉资质</a>
+                <a th:href="@{website/news}" target="_parent"
+                   class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors"
+                   style="color: #FFFFFF">新闻中心</a>
+                <a href="#contact"
+                   class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors"
+                   style="color: #FFFFFF">联系我们</a>
+            </nav>
+
+            <!-- 移动端菜单按钮 -->
+            <button id="menu-toggle" class="md:hidden text-white focus:outline-none">
+                <i class="fa fa-bars text-2xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 移动端导航菜单 -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+        <div class="px-4 py-3 space-y-3">
+            <a href="#home" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors"
+               style="color: #0a2730">首页</a>
+            <a th:href="@{website/overview}" target="_parent"
+               class="text-white hover:text-primary/80 transition-colors font-medium"
+               style="color: #0a2730">产品概览</a>
+            <a th:href="@{website/service}" target="_parent"
+               class="text-white hover:text-primary/80 transition-colors font-medium"
+               style="color: #0a2730">技术服务</a>
+            <a th:href="@{website/cases}" target="_parent"
+               class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors"
+               style="color: #0a2730">成功案例</a>
+            <a th:href="@{website/honor}" target="_parent"
+               class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors"
+               style="color: #0a2730">荣誉资质</a>
+            <a th:href="@{website/news}" target="_parent"
+               class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors"
+               style="color: #0a2730">新闻中心</a>
+            <a href="#contact" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors"
+               style="color: #0a2730">联系我们</a>
+        </div>
+    </div>
+</header>
+
+<!-- 英雄区域 -->
+<section id="home" class="relative min-h-screen flex items-center bg-[rgb(255,122,40)]  overflow-hidden">
+    <!-- 背景装饰元素 -->
+    <div class="absolute  overflow-hidden">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div class="absolute bottom-1/3 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse-slow"
+             style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 right-1/3 w-40 h-40 bg-accent/10 rounded-full blur-2xl animate-pulse-slow"
+             style="animation-delay: 1s;"></div>
+
+    </div>
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 text-center md:text-left mb-10 md:mb-0">
+                <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-bold text-white leading-tight text-shadow-lg mb-6" >
+                    专业工程技术解决方案
+                </h1>
+                <p class="text-[clamp(1.2rem,1.2vw,1.2rem)] text-white/90 mb-8  mx-auto md:mx-0"
+                  style="max-width: 40rem;" >
+                    &emsp;&emsp;华钜峰工程技术（上海）有限公司成立于 2024 年 9 月 ，注册资本 1002 万元，专注于工业领域科技推广及技术服务，是一家以“数字技术赋能传统制造运维，
+                    助力能源冶金行业高效低碳发展”为核心愿景，专注于数学模型AI大数据的创新型科技企业。 依托母公司上海宝衢自动化系统工程有限公司二十年行业积累，深耕钢铁行业，
+                    聚焦行业安全、降本增效、低碳冶金等核心需求，创新性研发出数字化出铁沟等产品，为钢铁企业提供全生命周期智能化解决方案。
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a th:href="@{website/service}" target="_parent"
+                       class="px-8 py-3 bg-white text-primary font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                       style="color: #000000">
+                        了解服务
+                    </a>
+                    <a href="#contact"
+                       class="px-8 py-3 bg-transparent text-white border-2 border-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300"
+                       >
+                        联系我们
+                    </a>
+                </div>
+            </div>
+            <div class="md:w-1/2 flex justify-center">
+                <div class="relative w-full max-w-md">
+                    <div class="absolute inset-0 bg-primary/20 rounded-full blur-3xl"></div>
+                    <img src="../img/huajufeng/a1.jpg" alt="工程技术团队协作"
+                         class="relative z-10 w-full h-auto rounded-2xl shadow-2xl animate-float"
+                         style="width: 450px;height: 350px">
+                    <!-- 装饰性数据卡片 -->
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 滚动指示器 -->
+    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
+        <i class="fa fa-angle-down text-3xl"></i>
+    </div>
+</section>
+
+<!-- 中间图片 -->
+<div class="shine-box" >
+    <img src="../img/huajufeng/aaa.jpg" >
+</div>
+
+<!-- 联系我们 -->
+<section id="contact" class="py-20 bg-[rgb(255,122,40)] text-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-white mb-4" >联系我们</h2>
+            <div class="w-20 h-1 bg-white mx-auto mb-6"></div>
+            <p class="text-white/80 max-w-2xl mx-auto" >
+                无论您有任何问题或需求，我们都很乐意听取您的意见并为您提供帮助。</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div>
+                <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 shadow-lg" style="height:703px">
+                    <h3 class="text-2xl font-bold mb-6" >联系方式</h3>
+                    <div class="space-y-14">
+                        <div class="flex items-start">
+                            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fa fa-map-marker text-white text-xl" ></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-1" >公司地址</h4>
+                                <a href="http://api.map.baidu.com/geocoder?address=上海市杨浦区尚浦中心8号楼606室&output=html&src=webapp.baidu.openAPIdemo"
+                                   target="_blank" class="text-white/80 hover-underline" >上海市杨浦区尚浦中心8号楼606室</a>
+                            </div>
+                        </div>
+                        <!--<div class="flex items-start">
+                            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fa fa-admin text-white text-xl" ></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-1" >负责人</h4>
+                                <p class="text-white/80" >陈芸芸</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fa fa-phone text-white text-xl" ></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-1" >联系电话</h4>
+                                <p class="text-white/80" >18508926635</p>
+                            </div>
+                        </div>-->
+                        <div class="flex items-start">
+                            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fa fa-envelope text-white text-xl" ></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-1" >电子邮箱</h4>
+                                <a href="mailto:info@huajufeng.com" class="text-white/80 hover-underline"
+                                   >info@huajufeng.com</a>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fa fa-clock-o text-white text-xl" ></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-1" >工作时间</h4>
+                                <p class="text-white/80" >周一至周五: 9:00 - 18:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="bg-white rounded-xl p-8 shadow-lg text-dark">
+                    <h3 class="text-2xl font-bold mb-6">发送消息</h3>
+                    <form id="contact-form">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label for="name" class="block text-gray-700 font-medium mb-2">姓名</label>
+                                <input type="text" id="name"
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring focus:ring-primary/20 transition-all outline-none"
+                                       placeholder="请输入您的姓名" required>
+                            </div>
+                            <div>
+                                <label for="company" class="block text-gray-700 font-medium mb-2">所属公司</label>
+                                <input type="text" id="company"
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring focus:ring-primary/20 transition-all outline-none"
+                                       placeholder="请输入您的公司名称" required>
+                            </div>
+                            <div>
+                                <label for="telephone" class="block text-gray-700 font-medium mb-2">电话</label>
+                                <input type="tel" id="telephone"
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring focus:ring-primary/20 transition-all outline-none"
+                                       placeholder="请输入您的电话" required>
+                            </div>
+                            <div>
+                                <label for="email" class="block text-gray-700 font-medium mb-2">邮箱</label>
+                                <input type="email" id="email"
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring focus:ring-primary/20 transition-all outline-none"
+                                       placeholder="请输入您的邮箱" required>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label for="subject" class="block text-gray-700 font-medium mb-2">主题</label>
+                            <input type="text" id="subject"
+                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring focus:ring-primary/20 transition-all outline-none"
+                                   placeholder="请输入消息主题" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="message" class="block text-gray-700 font-medium mb-2">消息内容</label>
+                            <textarea id="message" rows="5"
+                                      class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-primary focus:ring focus:ring-primary/20 transition-all outline-none"
+                                      placeholder="请输入您的消息内容" required></textarea>
+                        </div>
+                        <button type="submit"
+                                class="w-full bg-[rgb(255,122,40)] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#A4d3ee]/90 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                            发送消息
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white pt-16 pb-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div class="yejiao1" style="border-right: 2px solid #ffffff;padding-right: 2.5rem; ">
+                <div class="flex items-center mb-6">
+                    <div class="h-14 w-14 rounded-lg bg-dark flex items-center justify-center mr-3">
+                        <img src="../img/huajufeng/a01.png" style="width: 100px;height: 35px">
+                    </div>
+                </div>
+                <p class="text-gray-400 mb-6">
+                    我们致力于为客户提供全方位的工程技术服务，从规划设计到实施落地，为您的项目保驾护航。</p>
+                <div class="flex space-x-4">
+                    <a href="#"
+                       class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-weixin"></i>
+                    </a>
+                    <a href="#"
+                       class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-weibo"></i>
+                    </a>
+                    <a href="#"
+                       class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-linkedin"></i>
+                    </a>
+                    <a href="#"
+                       class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-youtube-play"></i>
+                    </a>
+                </div>
+            </div>
+
+
+            <div class="other-company1 lg:ml-20">
+                <h4 class="text-lg font-semibold mb-6">华钜峰工程技术(河北)有限公司</h4>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <i class="fa fa-map-marker text-primary mt-1 mr-3"></i>
+                        <a href="http://api.map.baidu.com/geocoder?address=河北省唐山市迁安市燕山南路东燕钢丽景家园8号楼&output=html&src=webapp.baidu.openAPIdemo"
+                           target="_blank"
+                           class="text-gray-400 hover-underline">河北省唐山市迁安市燕山南路东燕钢丽景家园8号楼</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-admin text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">吴美岳</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-phone text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">15373572770</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-envelope text-primary mt-1 mr-3"></i>
+                        <a href="mailto:hebei@huajufeng.com"
+                           class="text-gray-400 hover-underline">hebei@huajufeng.com</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-clock-o text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">周一至周五: 8:30 - 17:30</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="other-company2 lg:ml-20">
+                <h4 class="text-lg font-semibold mb-6">安徽华钜峰工程技术有限公司</h4>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <i class="fa fa-map-marker text-primary mt-1 mr-3"></i>
+                        <a href="http://api.map.baidu.com/geocoder?address=安徽省马鞍山市慈湖高新技术产业开发区慈湖街道金阳路335号7号楼&output=html&src=webapp.baidu.openAPIdemo"
+                           target="_blank"
+                           class="text-gray-400 hover-underline">安徽省马鞍山市慈湖高新技术产业开发区慈湖街道金阳路335号7号楼</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-admin text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">濮亮</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-phone text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">18755501922</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-envelope text-primary mt-1 mr-3"></i>
+                        <a href="mailto:anhui@huajufeng.com"
+                           class="text-gray-400 hover-underline">anhui@huajufeng.com</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-clock-o text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">周一至周五: 8:30 - 17:30</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-800 pt-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 mb-4 md:mb-0">© 2025 华钜峰工程技术(上海)有限公司. 保留所有权利.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">隐私政策</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">服务条款</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">网站地图</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- 返回顶部按钮 -->
+<button id="back-to-top"
+        class="fixed bottom-8 right-8 h-12 w-12 rounded-full bg-[#ffffff] text-slate-700 shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300 hover:bg-[#A4d3ee]/90 transform hover:-translate-y-1">
+    <i class="fa fa-chevron-up"></i>
+</button>
+
+<!-- JavaScript -->
+<script>
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    const companyName = document.getElementById('company-name');
+    const backToTopBtn = document.getElementById('back-to-top');
+
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > 50) {
+            navbar.classList.add('bg-[rgb(255,122,40)]', 'shadow-md');
+            navbar.classList.remove('bg-transparent');
+            companyName.classList.remove('text-white');
+            companyName.classList.add('text-primary');
+
+            // 更改导航链接颜色
+            const navLinks = navbar.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.classList.remove('text-white');
+                link.classList.add('text-gray-700');
+            });
+
+            // 更改移动端菜单按钮颜色
+            const menuToggle = document.getElementById('menu-toggle');
+            menuToggle.classList.remove('text-white');
+            menuToggle.classList.add('text-primary');
+
+            // 显示返回顶部按钮
+            backToTopBtn.classList.remove('opacity-0', 'invisible');
+            backToTopBtn.classList.add('opacity-100', 'visible');
+        } else {
+            navbar.classList.remove('bg-white', 'shadow-md');
+            navbar.classList.add('bg-transparent');
+            companyName.classList.add('text-white');
+            companyName.classList.remove('text-primary');
+
+            // 恢复导航链接颜色
+            const navLinks = navbar.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.classList.add('text-white');
+                link.classList.remove('text-gray-700');
+            });
+
+            // 恢复移动端菜单按钮颜色
+            const menuToggle = document.getElementById('menu-toggle');
+            menuToggle.classList.add('text-white');
+            menuToggle.classList.remove('text-primary');
+
+            // 隐藏返回顶部按钮
+            backToTopBtn.classList.add('opacity-0', 'invisible');
+            backToTopBtn.classList.remove('opacity-100', 'visible');
+        }
+    });
+
+    // 移动端菜单切换
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    menuToggle.addEventListener('click', function () {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // 平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            // 关闭移动菜单（如果打开）
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // 返回顶部按钮
+    backToTopBtn.addEventListener('click', function () {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+    // 案例筛选
+    const filterButtons = document.querySelectorAll('.project-filter');
+    const projectItems = document.querySelectorAll('.project-item');
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            // 移除所有按钮的活动状态
+            filterButtons.forEach(btn => {
+                btn.classList.remove('active', 'bg-primary', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+
+            // 添加当前按钮的活动状态
+            this.classList.add('active', 'bg-primary', 'text-white');
+            this.classList.remove('bg-gray-100', 'text-gray-700');
+
+            const filter = this.getAttribute('data-filter');
+
+            // 筛选项目
+            projectItems.forEach(item => {
+                if (filter === 'all' || item.getAttribute('data-category') === filter) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // 数字计数器动画
+    function animateCounter(elementId, targetValue, duration = 2000) {
+        const element = document.getElementById(elementId);
+        const startValue = 0;
+        const increment = targetValue / (duration / 16);
+        let currentValue = startValue;
+
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= targetValue) {
+                element.textContent = targetValue;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(currentValue);
+            }
+        }, 16);
+    }
+
+    // 检查元素是否在视口中
+    function isInViewport(element) {
+        const rect = element.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    }
+
+    function validateForm(formData) {
+        const result = {success: true, err: ''};
+        const phoneRegex = /^1[3-9]\d{9}$/;
+        const emailRegex = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
+        if (!phoneRegex.test(formData.telephone)) {
+            result.success = false;
+            result.err = '请输入正确的手机号';
+        }
+        if (!emailRegex.test(formData.email)) {
+            result.success = false;
+            result.err = '请输入正确的邮箱';
+        }
+        return result;
+    }
+
+    // 监听滚动事件，当计数器元素进入视口时开始动画
+    let countersAnimated = false;
+    window.addEventListener('scroll', function () {
+        if (!countersAnimated && isInViewport(document.getElementById('counter-projects'))) {
+            animateCounter('counter-projects', 200);
+            animateCounter('counter-clients', 150);
+            animateCounter('counter-team', 150);
+            animateCounter('counter-experience', 15);
+            countersAnimated = true;
+        }
+    });
+
+    // 表单提交
+    const contactForm = document.getElementById('contact-form');
+    /**
+     contactForm.addEventListener('submit', function(e) {
+     e.preventDefault();
+
+     // 这里可以添加表单验证和提交逻辑
+     alert('感谢您的留言！我们会尽快与您联系。');
+     contactForm.reset();
+     });
+     **/
+
+    contactForm.addEventListener('submit', async function (e) {
+        e.preventDefault(); // 阻止默认提交
+
+        // 获取表单数据
+        const formData = {
+            name: document.getElementById('name').value.trim(),
+            company: document.getElementById('company').value.trim(),
+            telephone: document.getElementById('telephone').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            subject: document.getElementById('subject').value.trim(),
+            content: document.getElementById('message').value.trim()
+        };
+        const validation = validateForm(formData);
+        if (!validation.success) {
+            alert(validation.err);
+            return;
+        }
+        try {
+            // 向后端发送请求
+            const response = await fetch('/project-flow/huajufeng/website/send-email', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(formData)
+            });
+            console.log('HTTP 状态码:', response.status);
+            const result = await response.json();
+            console.log('返回数据:', result);
+            if (result.code == 0) {
+                alert('感谢您的留言！');
+                contactForm.reset();
+            } else {
+                alert('发送失败：' + (result.msg || '未知错误'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('发送失败，请稍后重试。');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // 初始化 AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            easing: 'ease-out-cubic'
+        });
+
+        let currentIndex = 1;
+        let timer;
+        let progress = 0;
+        const duration = 8; // 每个模块停留秒数
+
+        function showModule(index) {
+            if (index === currentIndex) return;
+
+            const current = document.getElementById("module" + currentIndex);
+            const next = document.getElementById("module" + index);
+
+            // ✅ 1️⃣ 下一个模块先显示出来（去掉 hidden）
+            next.classList.remove("hidden");
+            void next.offsetWidth; // 强制浏览器感知 class 改变
+
+            // ✅ 2️⃣ 当前模块 → 左滑退出
+            current.classList.remove("module-active");
+            current.classList.add("module-exit");
+
+            // ✅ 3️⃣ 下一个模块 → 从右滑入
+            next.classList.add("module-active");
+
+            // ✅ 4️⃣ 动画结束后，把退出模块隐藏 + 回到右边候场
+            setTimeout(() => {
+                current.classList.remove("module-exit");
+                current.classList.add("hidden", "module-enter");
+            }, 500); // 500ms 对应 CSS transition
+
+            currentIndex = index;
+
+            // --- 按钮样式切换 ---
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                if (i === index - 1) {
+                    btn.classList.add('bg-white', 'text-white');
+                    btn.classList.remove('bg-white', 'text-gray-700');
+                } else {
+                    btn.classList.add('bg-white', 'text-gray-700');
+                    btn.classList.remove('bg-blue-500', 'text-white');
+                }
+            });
+
+            // --- 圆环进度切换 ---
+            document.querySelectorAll('.progress-ring__circle').forEach(c => c.setAttribute('stroke-dashoffset', 100));
+            const circle = document.querySelectorAll('.progress-ring__circle')[index - 1];
+            progress = 0;
+            clearInterval(timer);
+            timer = setInterval(() => {
+                progress += 100 / (duration * 10);
+                if (progress >= 100) {
+                    clearInterval(timer);
+                    nextModule();
+                }
+                circle.setAttribute('stroke-dashoffset', 100 - progress);
+            }, 100);
+        }
+
+        function nextModule() {
+            let nextIndex = currentIndex + 1;
+            if (nextIndex > 3) nextIndex = 1;
+            showModule(nextIndex);
+        }
+
+        // 手动点击切换（重置自动循环）
+        window.manualSwitch = function (index) {
+            showModule(index);
+        }
+
+        // ✅ 初始模块状态
+        document.querySelectorAll('.module').forEach((m, i) => {
+            if (i === 0) {
+                m.classList.add("module-active");
+                m.classList.remove("hidden", "module-enter");
+            } else {
+                m.classList.add("hidden", "module-enter");
+                m.classList.remove("module-active");
+            }
+        });
+        const firstCircle = document.querySelectorAll('.progress-ring__circle')[0];
+        progress = 0;
+        clearInterval(timer);
+        timer = setInterval(() => {
+            progress += 100 / (duration * 10);
+            if (progress >= 100) {
+                clearInterval(timer);
+                nextModule();
+            }
+            firstCircle.setAttribute('stroke-dashoffset', 100 - progress);
+        }, 100);
+    });
+</script>
+</body>
+</html>

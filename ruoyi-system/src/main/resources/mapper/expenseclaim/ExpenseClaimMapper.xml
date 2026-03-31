@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.costmanagement.mapper.ExpenseClaimMapper">
+
+    <resultMap type="ExpenseClaim" id="ExpenseClaimResult">
+        <result property="costType"    column="cost_type"    />
+        <result property="cost"    column="cost"    />
+        <result property="description"    column="description"    />
+        <result property="status"    column="status"    />
+        <result property="id"    column="id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <sql id="selectExpenseClaimVo">
+        select cost_type, cost, description, status, id, create_by, create_time, update_by, update_time, delete_flag from t_expense_claim
+    </sql>
+
+    <select id="selectExpenseClaimList" parameterType="ExpenseClaim" resultMap="ExpenseClaimResult">
+        <include refid="selectExpenseClaimVo"/>
+        <where>
+            <if test="createBy!=null and createBy!=''">
+                EXISTS(
+                SELECT 1 FROM t_expense_claim_sub
+                WHERE t_expense_claim_sub.delete_flag=0
+                AND (t_expense_claim_sub.expense_claim_id = t_expense_claim.id AND
+                (t_expense_claim_sub.create_by=#{createBy} OR t_expense_claim_sub.handle_by=#{createBy}))
+                )
+            </if>
+            <if test="costType != null  and costType != ''">and cost_type = #{costType}</if>
+            <if test="cost != null ">and cost = #{cost}</if>
+            <if test="description != null  and description != ''">and description = #{description}</if>
+            <if test="status != null ">and status = #{status}</if>
+            <if test="params.startTime!= null and params.startTime!= ''">and create_time &gt;= #{params.startTime}</if>
+            <if test="params.endTime!= null and params.endTime!= ''">and create_time &lt;= #{params.endTime}</if>
+            <if test="deleteFlag != null ">and delete_flag = #{deleteFlag}</if>
+        </where>
+    </select>
+
+    <select id="selectExpenseClaimById" parameterType="Long" resultMap="ExpenseClaimResult">
+        <include refid="selectExpenseClaimVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertExpenseClaim" parameterType="ExpenseClaim" useGeneratedKeys="true" keyProperty="id">
+        insert into t_expense_claim
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="costType != null and costType != ''">cost_type,</if>
+            <if test="cost != null">cost,</if>
+            <if test="description != null">description,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="costType != null and costType != ''">#{costType},</if>
+            <if test="cost != null">#{cost},</if>
+            <if test="description != null">#{description},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateExpenseClaim" parameterType="ExpenseClaim">
+        update t_expense_claim
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="costType != null and costType != ''">cost_type = #{costType},</if>
+            <if test="cost != null">cost = #{cost},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteExpenseClaimById" parameterType="Long">
+        update t_expense_claim set delete_flag=1,update_by=#{updateBy} where id = #{id}
+    </update>
+
+    <update id="deleteExpenseClaimByIds" parameterType="String">
+        update t_expense_claim set delete_flag=1,update_by=#{updateBy} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectDeleteAble" resultType="java.lang.Integer">
+        select count(*) from t_expense_claim
+        <where>
+            id in
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            and delete_flag = 0
+            and status=1
+        </where>
+    </select>
+</mapper>

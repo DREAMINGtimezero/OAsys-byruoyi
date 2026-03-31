@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增员工转正申请主')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="apply-formal-add">
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">首次工作日期：</label>
+                <div class="col-sm-8">
+                    <div class="input-group date">
+                        <input name="workDate" class="form-control" placeholder="yyyy-MM-dd" type="text" required>
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">入职日期：</label>
+                <div class="col-sm-8">
+                    <div class="input-group date">
+                        <input name="serviceDate" class="form-control" placeholder="yyyy-MM-dd" type="text" required>
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">试用期岗位：</label>
+                <div class="col-sm-8">
+                    <input name="servicePost" class="form-control" type="text" required>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">工作总结：</label>
+                <div class="col-sm-8">
+                    <textarea name="workSummary" class="form-control" placeholder="阐述工作任务、成果、自我评价及未来计划等"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">给公司的建议：</label>
+                <div class="col-sm-8">
+                    <textarea name="suggestion" class="form-control"></textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: datetimepicker-js" />
+<script th:inline="javascript">
+    var prefix = ctx + "staff-service/apply-formal"
+    $("#form-formal-add").validate({
+        focusCleanup: true
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/apply-formal-add", $('#apply-formal-add').serialize());
+        }
+    }
+
+    $("input[name='workDate']").datetimepicker({
+        format: "yyyy-mm-dd",
+        minView: "month",
+        autoclose: true
+    });
+
+    $("input[name='serviceDate']").datetimepicker({
+        format: "yyyy-mm-dd",
+        minView: "month",
+        autoclose: true
+    });
+</script>
+</body>
+</html>

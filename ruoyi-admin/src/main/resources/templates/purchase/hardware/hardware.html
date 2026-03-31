@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('硬件主页面')" />
+    <th:block th:include="include :: bootstrap-select-css" />
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="out-form">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <label>硬件编号：</label><input type="text" name="hardwareCode"/>
+                        </li>
+                        <li>
+                            <label>硬件名称：</label><input type="text" name="hardwareName"/>
+                        </li>
+                        <!--<li>
+                            <label>创建人：</label><input type="text" name="createBy"/>
+                        </li>-->
+                        <!--<li>
+                            <label>所属项目编号：</label><input type="text" name="projectCode"/>
+                        </li>-->
+                        <li class="select-selectpicker">
+                            <label>状态： </label>
+                            <select  name="status"  data-none-selected-text="请选择" >
+                                <option value="">所有</option>
+                                <option value="1">未提交</option>
+                                <option value="2">进行中</option>
+                                <option value="3">已完成</option>
+                            </select>
+                        </li>
+                        <li class="select-selectpicker">
+                            <label>费控类型： </label>
+                            <select  name="costType"  data-none-selected-text="请选择" >
+                                <option value="">所有</option>
+                                <option value="1">费控内</option>
+                                <option value="2">费控外</option>
+                            </select>
+                        </li>
+                        <li class="select-time">
+                            <label>创建时间： </label>
+                            <input type="text" class="time-input" name="beginCreateTime" placeholder="开始时间"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" name="endCreateTime" placeholder="结束时间"/>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()">
+                <i class="fa fa-plus"></i> 新增
+            </a>
+            <a class="btn btn-primary multiple disabled" onclick="$.operate.edit()">
+                <i class="fa fa-edit"></i> 编辑
+            </a>
+            <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()">
+                <i class="fa fa-remove"></i> 删除
+            </a>
+            <!--<a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="system:user:export">
+                <i class="fa fa-download"></i> 导出
+            </a>-->
+        </div>
+
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: bootstrap-select-js" />
+<script th:inline="javascript">
+    var detailFlag = [[${@permission.hasPermi('monitor:operlog:detail')}]];
+    var datas = [[${@dict.getType('sys_oper_type')}]];
+    var prefix = ctx + "purchase/hardware";
+
+    $(function() {
+        var options = {
+            url: prefix + "/list",
+            createUrl: prefix + "/add",
+            removeUrl: prefix + "/remove",
+            updateUrl: prefix + "/edit/{id}",
+            exportUrl: prefix + "/export",
+            modalName: "硬件",
+            detailView: true,
+            onExpandRow : function(index, row, $detail) {
+                initChildTable(index, row, $detail);
+            },
+            columns: [{
+                checkbox: true
+            },
+                {
+                    field: 'id',
+                    title: '主键',
+                    align: 'center',
+                    visible: false
+                },
+                {
+                    field: 'hardwareCode',
+                    align: 'center',
+                    title: '硬件编号'
+                },
+                {
+                    field: 'hardwareName',
+                    align: 'center',
+                    title: '硬件名称'
+                },
+                {
+                    field: 'projectName',
+                    align: 'center',
+                    title: '所属项目'
+
+                },
+                {
+                    field: 'hardwareDetails',
+                    align: 'center',
+                    title: '硬件详情'
+                },
+                {
+                    field: 'money',
+                    align: 'center',
+                    title: '金额'
+
+                },
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: '创建人'
+                },
+                {
+                    field: 'createDept',
+                    align: 'center',
+                    title: '创建人部门'
+                },
+                {
+                    field: 'createPost',
+                    align: 'center',
+                    title: '创建人岗位'
+                },
+                {
+                    field: 'createTime',
+                    align: 'center',
+                    title: '创建时间'
+                },
+                {
+                    field: 'note',
+                    align: 'center',
+                    title: '备注'
+                },
+                {
+                    field: 'costType',
+                    title: '费控类型',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if(value == 1){
+                            return '<span class="badge badge-primary">费控内</span>';
+                        }else if(value == 2){
+                            return '<span class="badge badge-warning">费控外</span>';
+                        }
+                    }
+                },
+                {
+                    field: 'status',
+                    title: '状态',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if(value == 1){
+                            return '<span class="badge badge-danger">未提交</span>';
+                        }else if(value == 2){
+                            return '<span class="badge badge-warning">进行中</span>';
+                        }else if (value == 3){
+                            return '<span class="badge badge-primary">已完成</span>';
+                        }
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        let param = row.id + "," + row.status;
+                        var actions = [];
+                        actions.push('<a class="btn btn-info btn-xs" onclick="detail(\''+ row.id + '\')" title="硬件详情"><i class="fa fa-file-text-o"></i>详情</a>');
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+
+    initChildTable = function(index, row, $detail) {
+        var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+        $(childTable).bootstrapTable({
+            url: prefix + "/findChildByHardwareId",
+            method: 'post',
+            sidePagination: "server",
+            contentType: "application/x-www-form-urlencoded",
+            queryParams: function(params) {    // 添加查询参数
+                var queryParams = {
+                    hardwareId: row.id // 传递主表ID
+                };
+                return queryParams;
+            },
+            columns: [
+                {
+                    field : 'createBy',
+                    align: 'center',
+                    title : '创建人'
+                },
+                {
+                    field : 'createTime',
+                    align: 'center',
+                    title : '创建时间'
+                },
+                {
+                    field : 'initiateNote',
+                    align: 'center',
+                    title : '发起意见'
+                },
+                {
+                    field : 'initiateTime',
+                    align: 'center',
+                    title : '发起时间'
+                },
+                {
+                    field : 'handleBy',
+                    align: 'center',
+                    title : '指定处理人'
+                },
+                {
+                    field : 'handlePost',
+                    align: 'center',
+                    title : '处理人岗位'
+                },
+                {
+                    field : 'handleDept',
+                    align: 'center',
+                    title : '处理人部门'
+                },
+                {
+                    field : 'handleNote',
+                    align: 'center',
+                    title : '处理意见'
+                },
+                {
+                    field : 'handleTime',
+                    align: 'center',
+                    title : '处理时间'
+                },
+                {
+                    field : 'note',
+                    align: 'center',
+                    title : '备注'
+                },
+                {
+                    field: 'status',
+                    title: '处理状态',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';//绿色 badge-primary
+                        } else if (value == 2) {
+                            return '<span class="badge badge-warning">待处理</span>';//黄色 badge-warning
+                        } else if (value == 3) {
+                            return '<span class="badge badge-primary">已处理</span>';//蓝色 badge-success
+                        } else if (value == 4) {
+                            return '<span class="badge badge-default">已驳回</span>';//红色 badge-danger
+                        }
+                        return '<span class="badge badge-default">未知</span>'; //灰色 badge-default
+                    }
+                },
+            ]
+        });
+    };
+
+    function detail(id) {
+        table.set();
+        $.modal.popupRight('查看硬件详情', prefix + '/detail/' + id)
+    }
+</script>
+</body>
+</html>

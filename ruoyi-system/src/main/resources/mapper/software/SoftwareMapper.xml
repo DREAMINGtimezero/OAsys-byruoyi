@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.software.mapper.SoftwareMapper">
+
+    <resultMap id="SoftwareResult" type="com.ruoyi.software.domain.Software">
+        <id property="id" column="id"/>
+        <result property="softwareCode" column="software_code"/>
+        <result property="softwareName" column="software_name"/>
+        <result property="projectCode" column="project_code"/>
+        <result property="description" column="description"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="money" column="money"/>
+        <result property="costType" column="cost_type"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <sql id="selectSoftwareVo">
+        select id, software_code, software_name, project_code, description, create_by, create_time,
+               update_by, update_time, money, cost_type, status
+        from t_software
+    </sql>
+
+    <select id="selectSoftwareList" parameterType="com.ruoyi.software.domain.Software" resultMap="SoftwareResult">
+        select ts.id, ts.create_by, ts.update_by, ts.create_time, ts.update_time, ts.delete_flag, ts.software_code,
+        ts.software_name, ts.project_code, tps.project_name, ts.status, ts.description, ts.note, ts.cost_type, ts.money
+        from t_software ts left join t_project_statis tps on ts.project_code = tps.project_code
+        <where>
+            <if test="createBy != null  and createBy != ''">
+                EXISTS (
+                SELECT 1 FROM t_software_process tsp  WHERE  ts.id = tsp.software_id
+                    and tsp.delete_flag = '0' and ( tsp.create_by = #{createBy} OR  tsp.handle_by = #{createBy})
+                )
+                AND ts.delete_flag = '0'
+            </if>
+            <if test="id != null  and id != ''"> and ts.id = #{id}</if>
+            <if test="softwareCode != null and softwareCode != ''"> AND ts.software_code like concat('%', #{softwareCode}, '%')</if>
+            <if test="softwareName != null and softwareName != ''"> AND ts.software_name like concat('%', #{softwareName}, '%')</if>
+            <if test="projectCode != null and projectCode != ''"> AND ts.project_code like concat('%', #{projectCode}, '%')</if>
+            <if test="costType != null and costType != ''"> AND ts.cost_type = #{costType}</if>
+            <if test="money != null and money != ''"> AND ts.money = #{money}</if>
+            <if test="description != null and description != ''"> AND ts.description like concat('%', #{description}, '%')</if>
+            <if test="status != null and status != ''"> AND ts.status = #{status}</if>
+            <if test="params.beginTime != null and params.beginTime != ''"> AND ts.create_time &gt;= #{params.beginTime}</if>
+            <if test="params.endTime != null and params.endTime != ''"> AND ts.create_time &lt;= #{params.endTime}</if>
+        </where>
+    </select>
+
+    <select id="selectSoftwareById" parameterType="Long" resultMap="SoftwareResult">
+        <include refid="selectSoftwareVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertSoftware" parameterType="com.ruoyi.software.domain.Software" useGeneratedKeys="true" keyProperty="id">
+        insert into t_software (
+            software_code, software_name, project_code, description,
+            create_by, create_time, money, cost_type, status, delete_flag
+        ) values (
+                     #{softwareCode}, #{softwareName}, #{projectCode}, #{description},
+                     #{createBy}, sysdate(), #{money}, #{costType}, 1, '0'
+                 )
+    </insert>
+
+    <update id="updateSoftware" parameterType="com.ruoyi.software.domain.Software">
+        update t_software
+        <set>
+            <if test="softwareCode != null">software_code = #{softwareCode},</if>
+            <if test="softwareName != null">software_name = #{softwareName},</if>
+            <if test="projectCode != null">project_code = #{projectCode},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="money != null">money = #{money},</if>
+            <if test="costType != null">cost_type = #{costType},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSoftwareById" parameterType="Long">
+        delete from t_software where id = #{id}
+    </delete>
+
+    <delete id="deleteSoftwareByIds" parameterType="String">
+        update t_software
+        set delete_flag = 1,
+        update_time = sysdate(),
+        update_by = #{updateBy}
+        where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

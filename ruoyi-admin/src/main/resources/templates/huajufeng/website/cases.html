@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成功案例</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script th:inline="javascript"> var ctx = [[@{/}]]; var lockscreen = [[${session.lockscreen}]]; if(lockscreen){window.top.location=ctx+"lockscreen";} </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0A2463',
+                        accent: '#3E92CC',
+                        dark: '#121212',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .text-shadow-lg {
+                text-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+            }
+            .bg-gradient-blue {
+                background: linear-gradient(135deg, #A4d3ee 0%, #A4d3ee 100%);
+            }
+            .clip-path-slant {
+                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            }
+        }
+        .fa-admin:before{
+            content: "\f007";
+        }
+        .other-company1{
+            height: 220px;
+            width: 450px;
+            margin: 0 auto;
+        }
+        .other-company2{
+            height: 220px;
+            width: 415px;
+            margin: 0 auto;
+        }
+        .pt-16{
+            padding-top: 2rem;
+        }
+        .hover-underline {
+            position: relative;
+            display: inline-block;
+        }
+
+        .hover-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: #ffffffcc;
+            transition: width 0.4s ease-in-out;
+        }
+
+        .hover-underline:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="font-inter bg-light text-dark antialiased">
+<!-- 导航栏 -->
+<header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300  " style="background: linear-gradient(135deg, rgb(186 57 27) 0%, #000000 100%);" >
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center">
+                <div>
+                    <img th:src="@{/img/huajufeng/a01.png}" style="width: 90px;height: 50px;left: -10px;position: relative;">
+                </div>
+            </div>
+
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex space-x-8">
+                <a th:href="@{../}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">首页</a>
+                <a th:href="@{overview}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">产品概览</a>
+                <a th:href="@{service}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">技术服务</a>
+                <a th:href="@{cases}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">成功案例</a>
+                <a th:href="@{honor}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">资质荣誉</a>
+                <a th:href="@{news}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">新闻中心</a>
+                <a th:href="@{../#contact}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">联系我们</a>
+            </nav>
+
+            <!-- 移动端菜单按钮 -->
+            <button id="menu-toggle" class="md:hidden text-white focus:outline-none">
+                <i class="fa fa-bars text-2xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 移动端导航菜单 -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+        <div class="px-4 py-3 space-y-3">
+            <a th:href="@{../}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">首页</a>
+            <a th:href="@{overview}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">产品概览</a>
+            <a th:href="@{service}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">技术服务</a>
+            <a th:href="@{cases}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">成功案例</a>
+            <a th:href="@{honor}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">资质荣誉</a>
+            <a th:href="@{news}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">新闻中心</a>
+            <a th:href="@{../#contact}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">联系我们</a>
+        </div>
+    </div>
+</header>
+<!-- 关于我们 -->
+<section id="about" class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 flex items-center justify-center">
+            <div class="flex-grow h-0.5 bg-[rgb(0,0,0)]"></div>
+            <h2 class="text-[clamp(1.2rem,3vw,2rem)] font-bold text-dark mb-0 px-4"><span class="text-primary" style="color: #000000">成功案例</span></h2>
+            <div class="flex-grow h-0.5 bg-[rgb(0,0,0)]"></div>
+        </div>
+
+        <!-- 成功案例1 -->
+        <p style="font-size: 30px">上海电气集团国控环球工程有限公司</p>
+        <p style="font-size: 25px">印尼输煤程控项目</p>
+        <div style="text-align: center">
+            <img th:src="@{/img/huajufeng/cases01.png}" style="width:450px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases02.png}" style="width:300px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases03.png}" style="width:300px; height:450px; border-radius:15px; display:inline-block;">
+        </div>
+        <hr>
+        <!-- 成功案例2 -->
+        <p style="font-size: 30px; padding-top:66px">上海第一机床厂有限公司</p>
+        <p style="font-size: 25px">转运机、换料机、提升机、非能动、铅铋堆项目</p>
+        <div style="text-align: center">
+            <img th:src="@{/img/huajufeng/cases04.png}" style="width:300px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases05.png}" style="width:300px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases06.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases07.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+        </div>
+        <hr>
+        <!-- 成功案例3 -->
+        <p style="font-size: 30px; padding-top:66px">特斯拉一扩污水处理系统</p>
+        <p style="font-size: 25px">特斯拉二期纯水系统</p>
+        <div style="text-align: center">
+            <img th:src="@{/img/huajufeng/cases08.png}" style="width:550px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases09.png}" style="width:550px; height:450px; border-radius:15px; display:inline-block;">
+        </div>
+        <hr>
+        <!-- 成功案例4 -->
+        <p style="font-size: 30px; padding-top:66px">示范项目应急指挥中心控制系统</p>
+        <p style="font-size: 25px"></p>
+        <div style="text-align: center">
+            <img th:src="@{/img/huajufeng/cases10.png}" style="width:550px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases11.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases12.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+        </div>
+        <hr>
+        <!-- 成功案例5 -->
+        <p style="font-size: 30px; padding-top:66px">上海电气鼓风机厂盘车控制柜</p>
+        <p style="font-size: 25px"></p>
+        <div style="text-align: center">
+            <img th:src="@{/img/huajufeng/cases13.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases14.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases15.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+        </div>
+        <hr>
+        <!-- 成功案例6 -->
+        <p style="font-size: 30px; padding-top:66px">上海电机厂</p>
+        <p style="font-size: 25px">印度JHAJJAR仪表柜项目</p>
+        <p style="font-size: 25px">印度Unchahar仪表柜项目</p>
+        <div style="text-align: center">
+            <img th:src="@{/img/huajufeng/cases16.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases17.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+            <img th:src="@{/img/huajufeng/cases18.png}" style="width:350px; height:450px; border-radius:15px; display:inline-block;">
+        </div>
+        <hr>
+
+    </div>
+</section>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white pt-16 pb-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div class="yejiao1" style="border-right: 2px solid #ffffff;padding-right: 2.5rem; ">
+                <div class="flex items-center mb-6">
+                    <div class="h-14 w-14 rounded-lg bg-dark flex items-center justify-center mr-3">
+                        <img th:src="@{/img/huajufeng/a01.png}" style="width: 100px;height: 35px">
+                    </div>
+                </div>
+                <p class="text-gray-400 mb-6">我们致力于为客户提供全方位的工程技术服务，从规划设计到实施落地，为您的项目保驾护航。</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-weixin"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-weibo"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-linkedin"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-youtube-play"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="other-company1 lg:ml-20">
+                <h4 class="text-lg font-semibold mb-6">华钜峰工程技术(河北)有限公司</h4>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <i class="fa fa-map-marker text-primary mt-1 mr-3"></i>
+                        <a href="http://api.map.baidu.com/geocoder?address=河北省唐山市迁安市燕山南路东燕钢丽景家园8号楼&output=html&src=webapp.baidu.openAPIdemo" target="_blank" class="text-gray-400 hover-underline">河北省唐山市迁安市燕山南路东燕钢丽景家园8号楼</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-admin text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">吴美岳</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-phone text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">15373572770</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-envelope text-primary mt-1 mr-3"></i>
+                        <a href="mailto:hebei@huajufeng.com" class="text-gray-400 hover-underline">hebei@huajufeng.com</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-clock-o text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">周一至周五: 8:30 - 17:30</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="other-company2 lg:ml-20">
+                <h4 class="text-lg font-semibold mb-6">安徽华钜峰工程技术有限公司</h4>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <i class="fa fa-map-marker text-primary mt-1 mr-3"></i>
+                        <a href="http://api.map.baidu.com/geocoder?address=安徽省马鞍山市慈湖高新技术产业开发区慈湖街道金阳路335号7号楼&output=html&src=webapp.baidu.openAPIdemo"
+                           target="_blank"
+                           class="text-gray-400 hover-underline">安徽省马鞍山市慈湖高新技术产业开发区慈湖街道金阳路335号7号楼</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-admin text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">濮亮</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-phone text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">18755501922</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-envelope text-primary mt-1 mr-3"></i>
+                        <a href="mailto:anhui@huajufeng.com" class="text-gray-400 hover-underline">anhui@huajufeng.com</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-clock-o text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">周一至周五: 8:30 - 17:30</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-800 pt-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 mb-4 md:mb-0">© 2025 华钜峰工程技术(上海)有限公司. 保留所有权利.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">隐私政策</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">服务条款</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">网站地图</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<script>
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    const companyName = document.getElementById('company-name');
+    const backToTopBtn = document.getElementById('back-to-top');
+
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+            navbar.classList.add('bg-[rgb(255,122,40)]', 'shadow-md');
+            navbar.classList.remove('bg-transparent','bg-gradient-blue');
+            companyName.classList.remove('text-white');
+            companyName.classList.add('text-primary');
+
+            // 更改导航链接颜色
+            const navLinks = navbar.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.classList.remove('text-white');
+                link.classList.add('text-gray-700');
+            });
+
+            // 更改移动端菜单按钮颜色
+            const menuToggle = document.getElementById('menu-toggle');
+            menuToggle.classList.remove('text-white');
+            menuToggle.classList.add('text-primary');
+        } else {
+            navbar.classList.remove('bg-white', 'shadow-md');
+            navbar.classList.add('bg-[rgb(255,122,40)]');
+            companyName.classList.add('text-white');
+            companyName.classList.remove('text-primary');
+
+            // 恢复导航链接颜色
+            const navLinks = navbar.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.classList.add('text-white');
+                link.classList.remove('text-gray-700');
+            });
+
+            // 恢复移动端菜单按钮颜色
+            const menuToggle = document.getElementById('menu-toggle');
+            menuToggle.classList.add('text-white');
+            menuToggle.classList.remove('text-primary');
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('主表详情页面')" />
+    <th:block th:include="include :: datetimepicker-css" />
+    <style type="text/css">
+        table label.error{position: inherit;}select + label.error{z-index:1;right:40px;}
+    </style>
+</head>
+<body class="gray-bg">
+<div class="main-content">
+    <form id="form-add" class="form-horizontal">
+        <h4 class="form-header h4">差旅信息</h4>
+        <form class="form-horizontal m" id="out-edit" th:object="${out}">
+            <input name="id" type="hidden" th:field="*{id}" />
+            <div class="row">  <!-- 新增 row 包裹两列 -->
+                <!-- 第一列：差旅描述 -->
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">差旅编号：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <input class="form-control" type="text" name="outCode" th:field="*{outCode}" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第二列：差旅详情 -->
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">差旅描述：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <textarea class="form-control" type="text" name="outDescribe" th:field="*{outDescribe}" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">  <!-- 新增 row 包裹两列 -->
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">差旅详情：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <textarea class="form-control" type="text" name="outDetails" th:field="*{outDetails}" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">申请金额：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <input class="form-control" type="text" name="outMoney" th:field="*{outMoney}"  readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">  <!-- 新增 row 包裹两列 -->
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">创建人：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <input class="form-control" type="text" name="createBy" th:field="*{createBy}" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">创建时间：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <input class="form-control" type="text" name="createTime"
+                                   th:value="${#dates.format(out.createTime, 'yyyy-MM-dd HH:mm:ss')}" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">  <!-- 新增 row 包裹两列 -->
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">创建人部门：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <input class="form-control" type="text" name="createDept" th:field="*{createDept}" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">创建人岗位：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <input class="form-control" type="text" name="createPost" th:field="*{createPost}" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">  <!-- 新增 row 包裹两列 -->
+                <div class="col-sm-6">  <!-- 改为 col-sm-6 使两列平分宽度 -->
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">所属项目名称：</label>  <!-- 调整 label 宽度 -->
+                        <div class="col-sm-8">
+                            <input class="form-control" type="text" name="projectName " th:field="*{projectName}" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <h4 class="form-header h4">差旅流程</h4>
+        <div class="row">
+            <div class="col-sm-12">
+                <!--<button type="button" class="btn btn-white btn-sm" onclick="addRow()"><i class="fa fa-plus"> 增加</i></button>-->
+                <!--<button type="button" class="btn btn-white btn-sm" onclick="sub.delRow()"><i class="fa fa-stop-circle">结束</i></button>-->
+                <div class="col-sm-12 select-table table-striped">
+                    <table id="bootstrap-table"></table>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row">
+    <div class="col-sm-offset-5 col-sm-10">
+        <button type="button" class="btn btn-sm btn-danger" onclick="closeCurrentPage()"><i class="fa fa-reply-all"></i>关 闭 </button>
+    </div>
+</div>
+
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: datetimepicker-js" />
+<script th:src="@{/js/jquery.tmpl.js}"></script>
+<script th:inline="javascript">
+    $(function() {
+        var prefix = ctx + "installation/travel-expenses";
+
+        var options = {
+            url: prefix + "/findOutChildByOutId",  // 使用后端接口获取数据
+            method: 'post',
+            earch: false,                 // 禁用搜索框
+            showSearch: false,             // 禁用搜索按钮
+            showToggle: false,            // 禁用切换视图（列表/卡片）按钮
+            queryParams: function(params) {
+                return {
+                    outId: [[${out.id}]]  // 传递合同ID
+                };
+            },
+            pagination: true,  // 启用分页
+            columns: [{
+                checkbox: true
+            },
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: "创建人",
+                    /*formatter: function (value, row, index) {
+                        var html = $.common.sprintf("<input class='form-control createBy' type='text' name='goods[%s].createBy' value='%s'>", index, value);
+                        return html;
+                    }*/
+                },
+                {
+                    field: 'initiateNote',
+                    align: 'center',
+                    title: '发起人意见',
+                },
+                {
+                    field: 'initiateTime',
+                    align: 'center',
+                    title: '发起时间',
+                },
+                {
+                    field: 'handleBy',
+                    align: 'center',
+                    title: '指定处理人',
+                },
+                {
+                    field: 'handleDept',
+                    align: 'center',
+                    title: '处理人部门',
+                },
+                {
+                    field: 'handlePost',
+                    align: 'center',
+                    title: '处理人岗位',
+                },
+                {
+                    field: 'handleNote',
+                    align: 'center',
+                    title: '处理意见',
+                },
+                {
+                    field: 'handleTime',
+                    align: 'center',
+                    title: '处理时间',
+                },
+                {
+                    field: 'status',
+                    align: 'center',
+                    title: '状态',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';//绿色 badge-primary
+                        } else if (value == 2) {
+                            return '<span class="badge badge-warning">待处理</span>';//黄色 badge-warning
+                        } else if (value == 3) {
+                            return '<span class="badge badge-primary">已完成</span>';//蓝色 badge-success
+                        } else if (value == 4) {
+                            return '<span class="badge badge-default">已驳回</span>';//红色 badge-danger
+                        }
+                        return '<span class="badge badge-default">未知</span>'; //灰色 badge-default
+                    }
+                },
+                {
+                    title: '文件',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        // 检查是否有文件数据，使用 row.fileNames 字段
+                        if ($.common.isNotEmpty(row.fileNames) && row.fileNames.trim() !== '') {
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileView(\'' + row.fileNames + '\')" title="文件预览"><i class="fa fa-folder-open"></i>预览</a> ');
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileDownload(\'' + row.fileNames + '\')" title="文件下载"><i class="fa fa-download"></i>下载</a>');
+                        } else {
+                            actions.push('<span class="text-muted">无文件</span>');
+                        }
+                        return actions.join('');
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        if (row.status == 1 ) { // 未提交状态    || row.status == 4
+                            actions.push('<a class="btn btn-primary btn-xs" onclick="jumpSubmit(\'' + row.id + '\')" title="发起"><i class="fa fa-paper-plane">发起</i></a>&nbsp;');
+                        } else if (row.status == 2) { // 待处理状态
+                            actions.push('<a class="btn btn-success btn-xs" onclick="jumpHandle(\'' + row.id + '\')" title="处理"><i class="fa fa-check">处理</i></a>&nbsp;');
+                        }
+                        return actions.join(''); // 返回按钮HTML字符串
+                    }
+                },
+            ],
+        };
+        $.table.init(options);
+    });
+
+    /* 关闭当前页 */
+    function closeCurrentPage() {
+        debugger;
+        var index = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(index); // 关闭当前页
+    }
+
+    /* 文件下载 */
+    function handleDownload(id) {
+        var prefix = ctx + "installation/travel-expenses";
+        // 先获取该流程的文件信息
+        $.ajax({
+            url: prefix + "/out-files/" + id,
+            type: "GET",
+            success: function(result) {
+                if (result.code == 0 && result.msg) {
+                    var fileNames = result.msg;  // 文件路径在msg字段中
+                    if (fileNames) {
+                        window.location.href = ctx + "common/batchDownload?fileName=" + encodeURI(fileNames);
+                    } else {
+                        $.modal.msgWarning("该流程暂无文件");
+                    }
+                } else {
+                    $.modal.msgError("没有文件信息");
+                }
+            }
+        });
+    }
+
+    //跳转提交页面
+    function jumpSubmit(id) {
+        var prefix = ctx + "installation/travel-expenses";
+        var url = prefix + '/jump-submit/' + id; // 拼接发起流程的URL
+        $.modal.open("确认提交", url, 800, 600);
+    }
+
+    //跳转处理页面
+    function jumpHandle(id) {
+        var prefix = ctx + "installation/travel-expenses";
+        var url = prefix + '/jump-handle/' + id; // 拼接发起流程的URL
+        $.modal.open("确认处理结果", url, 800, 600);
+    }
+
+
+    function initDetailTable() {
+        $('#bootstrap-table').bootstrapTable('refresh')
+    }
+</script>
+</body>
+</html>

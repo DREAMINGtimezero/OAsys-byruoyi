@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.staffservice.mapper.ApplyFormalMapper">
+
+    <resultMap type="ApplyFormal" id="ApplyFormalResult">
+        <result property="id"    column="id"    />
+        <result property="workDate"    column="work_date"    />
+        <result property="serviceDate"    column="service_date"    />
+        <result property="servicePost"    column="service_post"    />
+        <result property="workSummary"    column="work_summary"    />
+        <result property="suggestion"    column="suggestion"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <resultMap type="ApplyFormalSub" id="ApplyFormalSubResult">
+        <result property="id"    column="id"    />
+        <result property="applyFormalId"    column="apply_formal_id"    />
+        <result property="initiateNote"    column="initiate_note"    />
+        <result property="initiateTime"    column="initiate_time"    />
+        <result property="handleBy"    column="handle_by"    />
+        <result property="handleNote"    column="handle_note"    />
+        <result property="handleTime"    column="handle_time"    />
+        <result property="fileNames"    column="file_names"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <sql id="selectApplyFormalVo">
+        select id, work_date, service_date, service_post, work_summary, suggestion, status, create_by, create_time, update_by, update_time, delete_flag from t_apply_formal
+    </sql>
+
+    <sql id="selectApplyFormalSubVo">
+        select id, apply_formal_id, initiate_note, initiate_time, handle_by, handle_note, handle_time, file_names, status, create_by, create_time, update_by, update_time, delete_flag from t_apply_formal_sub
+    </sql>
+
+    <select id="selectApplyFormalList" parameterType="ApplyFormal" resultMap="ApplyFormalResult">
+        <include refid="selectApplyFormalVo"/>
+        <where>
+            delete_flag = 0
+            <if test="createBy != null and createBy != ''">
+                AND EXISTS (
+                SELECT 1 FROM t_apply_formal_sub
+                WHERE t_apply_formal.id = t_apply_formal_sub.apply_formal_id
+                AND t_apply_formal_sub.delete_flag = '0'
+                AND (t_apply_formal_sub.create_by = #{createBy} OR t_apply_formal_sub.handle_by = #{createBy})
+                )
+                AND t_apply_formal.delete_flag = '0'
+            </if>
+            <if test="id != null"> and id = #{id}</if>
+            <if test="workDate != null "> and work_date = #{workDate}</if>
+            <if test="serviceDate != null "> and service_date = #{serviceDate}</if>
+            <if test="servicePost != null  and servicePost != ''"> and service_post = #{servicePost}</if>
+            <if test="workSummary != null  and workSummary != ''"> and work_summary = #{workSummary}</if>
+            <if test="suggestion != null  and suggestion != ''"> and suggestion = #{suggestion}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+        </where>
+    </select>
+
+    <select id="selectApplyFormalById" parameterType="Long" resultMap="ApplyFormalResult">
+        <include refid="selectApplyFormalVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectApplyFormalSubByApplyFormalId" parameterType="Long" resultMap="ApplyFormalSubResult">
+        <include refid="selectApplyFormalSubVo"/>
+        where apply_formal_id = #{applyFormalId}
+    </select>
+
+    <select id="selectApplyFormalSubList" parameterType="ApplyFormalSub" resultMap="ApplyFormalSubResult">
+        <include refid="selectApplyFormalSubVo"/>
+        <where>
+            <if test="id != null"> and id = #{id}</if>
+            <if test="applyFormalId != null "> and apply_formal_id = #{applyFormalId}</if>
+            <if test="initiateNote != null  and initiateNote != ''"> and initiate_note = #{initiateNote}</if>
+            <if test="initiateTime != null "> and initiate_time = #{initiateTime}</if>
+            <if test="handleBy != null  and handleBy != ''"> and handle_by = #{handleBy}</if>
+            <if test="handleNote != null  and handleNote != ''"> and handle_note = #{handleNote}</if>
+            <if test="handleTime != null "> and handle_time = #{handleTime}</if>
+            <if test="fileNames != null  and fileNames != ''"> and file_names = #{fileNames}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+        </where>
+    </select>
+
+    <select id="selectApplyFormalSubById" parameterType="Long" resultMap="ApplyFormalSubResult">
+        <include refid="selectApplyFormalSubVo"/>
+        where id = #{id}
+    </select>
+
+    <!--查询子表的状态为1或2的数量通过主id-->
+    <select id="selectApplyFormalSubStatusSum" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_apply_formal_sub
+        WHERE apply_formal_id = #{applyFormalId}
+          AND status IN (1, 2)
+          AND delete_flag = 0
+    </select>
+
+    <insert id="insertApplyFormal" parameterType="ApplyFormal" useGeneratedKeys="true" keyProperty="id">
+        insert into t_apply_formal
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="workDate != null">work_date,</if>
+            <if test="serviceDate != null">service_date,</if>
+            <if test="servicePost != null and servicePost != ''">service_post,</if>
+            <if test="workSummary != null and workSummary != ''">work_summary,</if>
+            <if test="suggestion != null">suggestion,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="workDate != null">#{workDate},</if>
+            <if test="serviceDate != null">#{serviceDate},</if>
+            <if test="servicePost != null and servicePost != ''">#{servicePost},</if>
+            <if test="workSummary != null and workSummary != ''">#{workSummary},</if>
+            <if test="suggestion != null">#{suggestion},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertApplyFormalSub" parameterType="ApplyFormalSub" useGeneratedKeys="true" keyProperty="id">
+        insert into t_apply_formal_sub
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="applyFormalId != null">apply_formal_id,</if>
+            <if test="initiateNote != null">initiate_note,</if>
+            <if test="initiateTime != null">initiate_time,</if>
+            <if test="handleBy != null and handleBy != ''">handle_by,</if>
+            <if test="handleNote != null">handle_note,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="fileNames != null">file_names,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="applyFormalId != null">#{applyFormalId},</if>
+            <if test="initiateNote != null">#{initiateNote},</if>
+            <if test="initiateTime != null">#{initiateTime},</if>
+            <if test="handleBy != null and handleBy != ''">#{handleBy},</if>
+            <if test="handleNote != null">#{handleNote},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateApplyFormal" parameterType="ApplyFormal">
+        update t_apply_formal
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="workDate != null">work_date = #{workDate},</if>
+            <if test="serviceDate != null">service_date = #{serviceDate},</if>
+            <if test="servicePost != null and servicePost != ''">service_post = #{servicePost},</if>
+            <if test="workSummary != null and workSummary != ''">work_summary = #{workSummary},</if>
+            <if test="suggestion != null">suggestion = #{suggestion},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updateApplyFormalSub" parameterType="ApplyFormalSub">
+        update t_apply_formal_sub
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="applyFormalId != null">apply_formal_id = #{applyFormalId},</if>
+            <if test="initiateNote != null">initiate_note = #{initiateNote},</if>
+            <if test="initiateTime != null">initiate_time = #{initiateTime},</if>
+            <if test="handleBy != null and handleBy != ''">handle_by = #{handleBy},</if>
+            <if test="handleNote != null">handle_note = #{handleNote},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="fileNames != null and fileNames != ''">file_names = #{fileNames},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteApplyFormalByIds" parameterType="ApplyFormal">
+        update t_apply_formal set delete_flag = 1,update_by = #{updateBy} where id in
+        <foreach item="id" collection="ids" separator="," open="(" close=")" index="">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

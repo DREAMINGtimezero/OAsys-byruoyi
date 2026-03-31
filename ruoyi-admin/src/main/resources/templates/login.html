@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>项目流程化管理OA系统</title>
+    <meta name="description" content="项目流程化管理OA系统">
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet"/>
+    <link href="../static/css/style.min.css" th:href="@{/css/style.min.css}" rel="stylesheet"/>
+    <link href="../static/css/login.min.css" th:href="@{/css/login.min.css}" rel="stylesheet"/>
+    <link href="../static/ruoyi/css/ry-ui.css" th:href="@{/ruoyi/css/ry-ui.css?v=4.8.1}" rel="stylesheet"/>
+    <!-- 360浏览器急速模式 -->
+    <meta name="renderer" content="webkit">
+    <!-- 避免IE使用兼容模式 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" href="../static/favicon.ico" th:href="@{favicon.ico}"/>
+    <style type="text/css">label.error { position:inherit;  }</style>
+    <script>
+        if(window.top!==window.self){alert('未登录或登录超时。请重新登录');window.top.location=window.location};
+    </script>
+
+    <style>
+        .row {
+            margin-left: 100px;
+        }
+
+        #signupForm h3.no-margins {
+            text-align: center;
+        }
+
+        #signupForm input[name="username"],
+        #signupForm input[name="password"] {
+            width: 55% !important;      /* 强制减半 */
+            margin-left: auto !important;
+            margin-right: auto !important;
+            display: block !important;  /* 让 margin:auto 生效 */
+        }
+
+        #btnSubmit {
+            width: 70%;            /* 宽度减半 */
+            margin: 10px auto 0;   /* 水平居中，上外边距10px，可按需调整 */
+            display: block;        /* 让 margin:auto 生效 */
+        }
+
+        #signupForm .row{
+            margin-left: 83px;
+        }
+        #signupForm .form-control{
+            width: 70%;
+        }
+
+        #signupForm .checkbox-custom {
+            margin-left:98px;
+        }
+
+        .imgcode {
+            margin-left:-38px;
+        }
+        .signinpanel{
+            margin-top:165px;
+        }
+    </style>
+</head>
+<body class="signin">
+    <div class="signinpanel">
+        <div class="row">
+            <div class="col-sm-5">
+                <form id="signupForm" autocomplete="off" style="background: white;color: #02A0E5;width: 500px">
+                    <h3 class="no-margins">您好！请登录</h3>
+                    <input type="text"     name="username" class="form-control uname"     placeholder="用户名"     />
+                    <input type="password" name="password" class="form-control pword"     placeholder="密码"    />
+					<div class="row m-t" th:if="${captchaEnabled==true}">
+						<div class="col-xs-6">
+						    <input type="text" name="validateCode" class="form-control code" placeholder="验证码" maxlength="5" />
+						</div>
+						<div class="col-xs-6" style="width: 140px;">
+							<a href="javascript:void(0);" title="点击更换验证码">
+								<img th:src="@{/captcha/captchaImage(type=${captchaType})}" class="imgcode" width="85%"/>
+							</a>
+						</div>
+					</div>
+                    <div class="checkbox-custom" th:if="${isRemembered}" th:classappend="${captchaEnabled==false} ? 'm-t'">
+				        <input type="checkbox" id="rememberme" name="rememberme"> <label for="rememberme">记住我</label>
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        <a style="color: #02A0E5;"
+                           title="项目管理化流程OA系统操作手册"
+                           href="file/项目管理化流程OA系统操作手册.pdf"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            系统操作手册
+                        </a>
+				    </div>
+                    <button class="btn btn-success btn-block" id="btnSubmit" data-loading="正在验证登录，请稍候...">登录</button>
+                </form>
+            </div>
+        </div>
+    </div>
+<script th:inline="javascript"> var ctx = [[@{/}]]; var captchaType = [[${captchaType}]]; var captchaEnabled = [[${captchaEnabled}]];</script>
+<!--[if lte IE 8]><script>window.location.href=ctx+'html/ie.html';</script><![endif]-->
+<!-- 全局js -->
+<script src="../static/js/jquery.min.js" th:src="@{/js/jquery.min.js}"></script>
+<script src="../static/ajax/libs/validate/jquery.validate.min.js" th:src="@{/ajax/libs/validate/jquery.validate.min.js}"></script>
+<script src="../static/ajax/libs/layer/layer.min.js" th:src="@{/ajax/libs/layer/layer.min.js}"></script>
+<script src="../static/ajax/libs/blockUI/jquery.blockUI.js" th:src="@{/ajax/libs/blockUI/jquery.blockUI.js}"></script>
+<script src="../static/ruoyi/js/ry-ui.js" th:src="@{/ruoyi/js/ry-ui.js?v=4.8.1}"></script>
+<script src="../static/ruoyi/login.js" th:src="@{/ruoyi/login.js}"></script>
+</body>
+</html>

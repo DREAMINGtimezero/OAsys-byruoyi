@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('考勤主页面')"/>
+    <th:block th:include="include :: bootstrap-select-css"/>
+    <style>
+        .btn-download-line{
+            display:inline-flex;
+            align-items:center;
+            gap:1px;            /* 10 ÷ 2 */
+            padding:5px 10px;   /* 10 24 ÷ 2 */
+            font-size:13px;    /* 15 ÷ 2 */
+            color:#0066ff;
+            border:1px solid #0066ff; /* 2 ÷ 2 */
+            border-radius:25px;     /* 25 ÷ 2 */
+            background:transparent;
+            cursor:pointer;
+            text-decoration:none;
+            position:relative;
+            overflow:hidden;
+            transition:color .3s ease;
+        }
+        .btn-download-line::before{
+            content:'';
+            position:absolute;
+            left:0;
+            top:0;
+            height:100%;
+            width:0;
+            background:#0066ff;
+            z-index:-1;
+            transition:width .3s ease;
+        }
+        .btn-download-line:hover{
+            color:#fff;
+        }
+        .btn-download-line:hover::before{
+            width:100%;
+        }
+    </style>
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="out-form">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <label>考勤描述：</label><input type="text" name="workDescribe"/>
+                        </li>
+                        <li class="select-time">
+                            <label>创建时间： </label>
+                            <input type="text" class="time-input" name="beginCreateTime" placeholder="开始时间"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" name="endCreateTime" placeholder="结束时间"/>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
+                                    class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
+                                    class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()">
+                <i class="fa fa-plus"></i> 新增
+            </a>
+        </div>
+
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+
+        <div class="col-sm-12" style="margin-top: 15px">
+            <a class="btn-download-line"  th:href="@{/file/公司员工用车申请.docx}">
+                <i class="fa fa-download"></i> 公司员工用车申请
+            </a>
+            <a class="btn-download-line"  th:href="@{/file/员工宿舍住宿申请表.docx}">
+                <i class="fa fa-download"></i> 员工宿舍住宿申请表
+            </a>
+            <a class="btn-download-line"  th:href="@{/file/工资预支申请单模版.xlsx}">
+                <i class="fa fa-download"></i> 工资预支申请单模版
+            </a>
+            <a class="btn-download-line"  th:href="@{/file/差旅申请单.docx}">
+                <i class="fa fa-download"></i> 差旅申请单
+            </a>
+            <a class="btn-download-line"  th:href="@{/file/开票资料.docx}">
+                <i class="fa fa-download"></i> 开票资料
+            </a>
+            <a class="btn-download-line"  th:href="@{/file/报销单1.xlsx}">
+                <i class="fa fa-download"></i> 报销单
+            </a>
+            <a class="btn-download-line"  th:href="@{/file/考勤制度.docx}">
+                <i class="fa fa-download"></i> 考勤制度
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: bootstrap-select-js"/>
+<script th:inline="javascript">
+    var detailFlag = [[${@permission.hasPermi('monitor:operlog:detail')}]];
+    var datas = [[${@dict.getType('sys_oper_type')}]];
+    var prefix = ctx + "staff-service/work";
+
+    var userName = [[${userName}]];
+    console.log("aaaaaaaaaaaaaaaaaaa"+userName);
+
+    $(function () {
+        var options = {
+            url: prefix + "/list",
+            createUrl: prefix + "/add",
+            removeUrl: prefix + "/remove",
+            updateUrl: prefix + "/edit/{id}",
+            exportUrl: prefix + "/export",
+            modalName: "考勤",
+            columns: [
+                {
+                    field: 'id',
+                    title: '主键',
+                    align: 'center',
+                    visible: false
+                },
+                {
+                    field: 'workDescribe',
+                    align: 'center',
+                    title: '考勤描述'
+                },
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: '创建人'
+                },
+                {
+                    field: 'createDept',
+                    align: 'center',
+                    title: '创建人部门'
+                },
+                {
+                    field: 'createPost',
+                    align: 'center',
+                    title: '创建人岗位'
+                },
+                {
+                    field: 'createTime',
+                    align: 'center',
+                    title: '创建时间'
+                },
+                {
+                    field: 'note',
+                    align: 'center',
+                    title: '备注'
+                },
+                {
+                    title: '文件',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        // 检查是否有文件数据，使用 row.fileNames 字段
+                        if ($.common.isNotEmpty(row.fileNames) && row.fileNames.trim() !== '') {
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileView(\'' + row.fileNames + '\')" title="文件预览"><i class="fa fa-folder-open"></i>预览</a> ');
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileDownload(\'' + row.fileNames + '\')" title="文件下载"><i class="fa fa-download"></i>下载</a>');
+                        } else {
+                            actions.push('<span class="text-muted">无文件</span>');
+                        }
+                        return actions.join('');
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        var actions = [];
+                        if ($.common.equals(userName,row.createBy)){
+                            actions.push('<a class="btn btn-success btn-xs" href="javascript:void(0)" onclick="$.operate.edit(\'' + row.id + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                            actions.push('<a class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.id + '\')"><i class="fa fa-remove"></i>删除</a> ');
+                            return actions.join('');
+                        }else {
+                            return '-';
+                        }
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+
+    /* 文件下载 */
+    function handleDownload(fileNames) {
+        window.location.href = ctx + "common/batchDownload?fileName=" + encodeURI(fileNames);
+    }
+</script>
+</body>
+</html>

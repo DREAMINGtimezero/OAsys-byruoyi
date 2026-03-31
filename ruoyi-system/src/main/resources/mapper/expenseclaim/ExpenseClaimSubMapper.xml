@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.costmanagement.mapper.ExpenseClaimSubMapper">
+
+    <resultMap type="ExpenseClaimSub" id="ExpenseClaimSubResult">
+        <result property="expenseClaimId"    column="expense_claim_id"    />
+        <result property="initiateNote"    column="initiate_note"    />
+        <result property="initiateTime"    column="initiate_time"    />
+        <result property="handleBy"    column="handle_by"    />
+        <result property="handleNote"    column="handle_note"    />
+        <result property="handleTime"    column="handle_time"    />
+        <result property="fileNames"    column="file_names"    />
+        <result property="status"    column="status"    />
+        <result property="id"    column="id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <sql id="selectExpenseClaimSubVo">
+        select expense_claim_id, initiate_note, initiate_time, handle_by, handle_note, handle_time, file_names, status, id, create_by, create_time, update_by, update_time, delete_flag from t_expense_claim_sub
+    </sql>
+
+    <select id="selectExpenseClaimSubList" parameterType="ExpenseClaimSub" resultMap="ExpenseClaimSubResult">
+        <include refid="selectExpenseClaimSubVo"/>
+        <where>
+            <if test="expenseClaimId != null "> and expense_claim_id = #{expenseClaimId}</if>
+            <if test="initiateNote != null  and initiateNote != ''"> and initiate_note = #{initiateNote}</if>
+            <if test="initiateTime != null "> and initiate_time = #{initiateTime}</if>
+            <if test="handleBy != null  and handleBy != ''"> and handle_by = #{handleBy}</if>
+            <if test="handleNote != null  and handleNote != ''"> and handle_note = #{handleNote}</if>
+            <if test="handleTime != null "> and handle_time = #{handleTime}</if>
+            <if test="fileNames != null and fileNames != ''"> and file_names = #{fileNames}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+        </where>
+    </select>
+
+    <select id="selectExpenseClaimSubById" parameterType="Long" resultMap="ExpenseClaimSubResult">
+        <include refid="selectExpenseClaimSubVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertExpenseClaimSub" parameterType="ExpenseClaimSub" useGeneratedKeys="true" keyProperty="id">
+        insert into t_expense_claim_sub
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="expenseClaimId != null">expense_claim_id,</if>
+            <if test="initiateNote != null">initiate_note,</if>
+            <if test="initiateTime != null">initiate_time,</if>
+            <if test="handleBy != null">handle_by,</if>
+            <if test="handleNote != null">handle_note,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="fileNames != null">file_names,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="expenseClaimId != null">#{expenseClaimId},</if>
+            <if test="initiateNote != null">#{initiateNote},</if>
+            <if test="initiateTime != null">#{initiateTime},</if>
+            <if test="handleBy != null">#{handleBy},</if>
+            <if test="handleNote != null">#{handleNote},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateExpenseClaimSub" parameterType="ExpenseClaimSub">
+        update t_expense_claim_sub
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="expenseClaimId != null">expense_claim_id = #{expenseClaimId},</if>
+            <if test="initiateNote != null">initiate_note = #{initiateNote},</if>
+            <if test="initiateTime != null">initiate_time = #{initiateTime},</if>
+            <if test="handleBy != null">handle_by = #{handleBy},</if>
+            <if test="handleNote != null">handle_note = #{handleNote},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="fileNames != null and fileNames != ''">file_names = #{fileNames},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteExpenseClaimSubById" parameterType="Long">
+        update t_expense_claim_sub set delete_flag=1,update_by=#{updateBy} where id = #{id}
+    </update>
+
+    <update id="deleteExpenseClaimSubByIds" parameterType="String">
+        update t_expense_claim_sub set delete_flag=1,update_by=#{updateBy} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="deleteRelativeData">
+        update t_expense_claim_sub set delete_flag = 1,update_by=#{updateBy}
+        where expense_claim_id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    <select id="selectByStatusList" resultType="java.lang.Integer">
+        select count(*) from t_expense_claim_sub
+        <where>
+        delete_flag = 0
+        and expense_claim_id = #{relativeId}
+        and
+        <if test="statusList != null and statusList.length!=0">
+            status in
+            <foreach item="status" collection="statusList" separator="," open="(" close=")">
+                #{status}
+            </foreach>
+        </if>
+        </where>
+    </select>
+</mapper>

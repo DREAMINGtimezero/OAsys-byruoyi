@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('新增客户子')"/>
+    <th:block th:include="include :: datetimepicker-css"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-sub-add">
+        <input type="hidden" name="customerId"/>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">访问方式：</label>
+                <div class="col-sm-8">
+                    <select name="wayOfVision" class="form-control" type="text" required>
+                        <option value="PHONE">电话</option>
+                        <option value="OFFLINE">线下拜访</option>
+                        <option value="WECHAT">微信沟通</option>
+                        <option value="OTHER">其它</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">进展情况：</label>
+                <div class="col-sm-8">
+                    <textarea name="progress" class="form-control" required></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">沟通时间：</label>
+                <div class="col-sm-8">
+                    <div class="input-group date">
+                        <input name="communicationTime" class="form-control" placeholder="yyyy-MM-dd" type="text"
+                               required>
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">备注信息：</label>
+                <div class="col-sm-8">
+                    <textarea name="note" class="form-control"></textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: datetimepicker-js"/>
+<script th:inline="javascript">
+    const prefix = ctx + "customer/dev/sub"
+    $(function (){
+        const customerId = new URLSearchParams(window.location.search).get('customerId');
+        $(`input[name='customerId']`).val(customerId);
+        console.log(customerId);
+    });
+    $("#form-sub-add").validate({
+        focusCleanup: true
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/add", $('#form-sub-add').serialize(), submitCallback);
+        }
+    }
+
+    function submitCallback(result) {
+        if (result.code === web_status.SUCCESS){
+            top.$("iframe").each(function() {
+                console.log(this.src);
+                if (this.src.indexOf("detail") > -1) {
+                    this.contentWindow.initDetailTable();
+                    return false;
+                }
+            });
+        }else {
+            $.modal.msgWarning(result.msg);
+        }
+    }
+
+    $("input[name='communicationTime']").datetimepicker({
+        format: "yyyy-mm-dd",
+        minView: "month",
+        autoclose: true
+    });
+</script>
+</body>
+</html>

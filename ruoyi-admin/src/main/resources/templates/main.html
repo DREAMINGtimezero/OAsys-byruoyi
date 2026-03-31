@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--360浏览器优先以webkit内核解析-->
+    <title>上海宝衢项目流程化管理OA系统</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet"/>
+    <link href="../static/css/style.min.css" th:href="@{/css/style.min.css}" rel="stylesheet"/>
+
+    <!-- 自定义首页样式 -->
+    <style>
+        /* 顶部图表区域样式 */
+        .top-charts-container {
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .charts-wrapper {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px; /* 两个图表之间的间距 */
+        }
+        .chart-placeholder {
+            height: 300px;!important;
+            border: 1px solid #e5e6e7;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        /* 扇形图占2个卡片宽度，条形图占4个卡片宽度 */
+        #sectorChartContainer {
+            width: 33.333%; /* 2/6的比例 */
+        }
+        #barChartContainer {
+            width: 66.666%; /* 4/6的比例 */
+        }
+        /* 卡片容器样式 */
+        .cards-container {
+            padding: 0 20px 20px;
+            box-sizing: border-box;
+            position: relative; /* 关键：为下拉框提供定位基准 */
+        }
+        /*  select 下拉框样式  */
+        .global-filter-select {
+            position: absolute;
+            right: 20px; /* 与卡片区域右内边距一致 */
+            z-index: 100; /* 确保在卡片上方显示 */
+            padding: 4px 15px 4px 10px; /* 右侧留足箭头空间 */
+            font-size: 14px;
+            color: #666;
+            background-color: #f5f6f7;
+            border: 1px solid #e5e6e7;
+            border-radius: 3px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            appearance: none; /* 清除默认下拉箭头 */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        /* hover 和 focus 状态 -  */
+        .global-filter-select:hover {
+            background-color: #eee;
+            border-color: #d4d4d4;
+        }
+        .global-filter-select:focus {
+            outline: none;
+            border-color: #1ab394;
+            box-shadow: 0 0 0 2px rgba(26, 179, 148, 0.1);
+        }
+        /* 下拉选项样式 -  */
+        .global-filter-select option {
+            background-color: #fff;
+            color: #333;
+            padding: 8px 10px;
+            font-size: 13px;
+        }
+        .global-filter-select option:checked {
+            background-color: #eaf8f6;
+            color: #1ab394;
+        }
+        .card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px; /* 抵消卡片的左右margin */
+        }
+
+        /* 卡片样式 - 调整为一行6个 */
+        .stat-card {
+            width: 16.666%; /* 100%/6 */
+            padding: 0 10px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+        .card-inner {
+            background-color: #fff;
+            border: 1px solid #e5e6e7;
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .card-inner:hover {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-stats {
+            margin-bottom: 15px;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .stat-label {
+            color: #666;
+        }
+        .stat-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* 进度条样式 */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #1ab394; /* 若依常用的成功色 */
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+        .progress-text {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body class="gray-bg">
+<!-- 顶部图表区域 -->
+<div class="top-charts-container">
+    <div class="charts-wrapper">
+        <!-- 左上扇形图占位 -->
+        <div class="chart-placeholder" id="sectorChartContainer">
+            <i class="fa fa-circle-o-notch fa-spin mr-2"></i>扇形图加载中...
+        </div>
+        <!-- 右上条形图占位 -->
+        <div class="chart-placeholder" id="barChartContainer">
+            <i class="fa fa-circle-o-notch fa-spin mr-2"></i>条形图加载中...
+        </div>
+    </div>
+</div>
+
+<!-- 卡片区域 -->
+<div class="cards-container">
+    <select class="global-filter-select" name="isCeo" onchange="loadCardData()">
+        <option value="false" selected>查看我的</option>
+        <option value="true">查看全部</option>
+    </select>
+    <div class="card-grid">
+        <!-- 卡片1（静态占位） -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">项目名称</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片2（静态占位） -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">项目名称</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片3（静态占位） -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">项目名称</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片4（静态占位） -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">项目名称</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片5（静态占位） -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">项目名称</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片6（静态占位） -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">项目名称</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片7（静态占位） -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">项目名称</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片8（静态占位） -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">项目名称</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片9：财务报销 -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">财务报销</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片10：办公用品 -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">办公用品</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片11：服务合同 -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">服务合同</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片12：转正申请 -->
+        <div class="stat-card">
+            <div class="card-inner">
+                <h3 class="card-title">转正申请</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总量：</span>
+                        <span class="stat-value total">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未提交：</span>
+                        <span class="stat-value unSubmitTed">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">进行中：</span>
+                        <span class="stat-value inProgress">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已完成：</span>
+                        <span class="stat-value completed">--</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span class="progress-percent">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/ruoyi/js/common.js}"></script>
+<script th:src="@{/ruoyi/js/ry-ui.js?v=4.8.1}"></script>
+<script th:src="@{/ajax/libs/layer/layer.min.js}"></script>
+<script th:src="@{/js/axios.min.js}"></script>
+
+<!-- 引入ECharts用于图表展示 -->
+<script th:src="@{/js/echarts.min.js}"></script>
+
+<script th:inline="javascript">
+    var ctx = [[@{/}]];
+    $(function() {
+        // 初始化图表
+        initSectorChart();
+        initBarChart();
+        // 加载卡片数据
+        loadCardData();
+    });
+    function initBarChart(){
+        const barChartUrl = ctx + "/bar-chart";
+        //配置路由
+        const routes = {
+            "合同":"contract/contract/initLoads",
+            "技术协议":"contract/technical-agreement/initLoads",
+            "硬件":"purchase/hardware/initLoads",
+            "软件":"purchase/software/initLoads",
+            "服务":"purchase/service/initLoads",
+            "差旅":"installation/travel-expenses/initLoads",
+            "请款":"please-money/config/initLoads",
+            "财务报销":"cost-management/expense-claim/initLoads",
+            "办公用品":"cost-management/office-supplies/initLoads",
+            "服务合同":"cost-management/servicecontract/initLoads",
+            "转正申请":"staff-service/apply-formal/initLoads"
+        }
+        const queryArguments={
+            statusList:["2",].join( ","),
+            status:2,
+        }
+        // 基于准备好的dom，初始化echarts实例
+        const myChart = echarts.init(document.getElementById('barChartContainer'),null,{renderer:"svg"});
+
+        // 指定图表的配置项和数据
+        const option = {
+            title: {
+                text: '待办事项',
+            },
+            tooltip: {},
+            legend: {
+                data: [],
+            },
+            xAxis: {
+                data: [],
+                axisLabel: {
+                    rotate: 0,
+                    fontSize: 12,
+                    interval: 0,
+                    overflow: 'truncate',
+                    width: 60
+                },
+                // 调整x轴轴线与标签的距离
+                axisLine: {
+                    lineStyle: {
+                        width: 1
+                    }
+                }
+            },
+            yAxis: {},
+            series: {
+                name: '待办数量',
+                type: 'bar',
+                barWidth: 30
+            },
+        };
+        axios
+            .get(barChartUrl)
+            .then((response) => {
+                console.log(response);
+                let {data: {data},} = response;
+                option.legend.data = data.legend;
+                option.xAxis.data = data.xaxis;
+                console.log(data.xaxis);
+                option.series = [];
+                for (const item of option.legend.data) {
+                    option.series.push({
+                        name: item,
+                        type: 'bar',
+                        data: data.series[item],
+                        color:'#dd6b66',
+                    });
+                }
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            })
+            .catch((error) => {
+            });
+        myChart.setOption(option);
+        // 添加点击事件监听器
+
+        myChart.on('click', function(params) {
+            // window.location.href = ctx+routes[params.name];
+            let queryParams = [];
+            for(let key in queryArguments){
+               if(queryArguments.hasOwnProperty(key))
+               {
+                   queryParams.push(`${key}=${queryArguments[key]}`);
+               }
+            }
+           $.modal.openTab(params.name,ctx+routes[params.name]+"?"+queryParams.join("&"));
+        });
+        window.addEventListener('resize', function () {
+            myChart.resize();
+        });
+    }
+    /**
+     * 初始化图表（扇形图和条形图）
+     */
+    function initSectorChart() {
+        // 初始化扇形图
+        var sectorChartDom = document.getElementById('sectorChartContainer');
+        var sectorChart = echarts.init(sectorChartDom);
+
+        // 初始配置（不含数据）
+        var sectorOption = {
+            title: {
+                text: '项目状态统计',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                data: ['未提交', '已提交', '已完成']
+            },
+            series: [
+                {
+                    name: '项目数量',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 10,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 16,
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: []  // 初始为空
+                }
+            ]
+        };
+
+        // 先显示空图表
+        sectorChart.setOption(sectorOption);
+
+        // 从后端加载数据
+        $.ajax({
+            url: ctx + 'project/status-stats',  // 后端接口
+            type: 'GET',
+            success: function(result) {
+                if (result.code == 0) {
+                    // 更新数据
+                    sectorOption.series[0].data = [
+                        {value: result.data.unSubmitted, name: '未提交', itemStyle: {color: '#ed5565'}},
+                        {value: result.data.submitted, name: '已提交', itemStyle: {color: '#f8ac59'}},
+                        {value: result.data.completed, name: '已完成', itemStyle: {color: '#1ab394'}}
+                    ];
+
+                    // 重新设置配置
+                    sectorChart.setOption(sectorOption);
+                } else {
+                    $.modal.alertWarning(result.msg);
+                }
+            },
+            error: function(xhr, status, error) {
+                $.modal.alertError("获取项目状态统计数据失败");
+            }
+        });
+
+        // 监听窗口大小变化，自动调整图表尺寸
+        window.addEventListener('resize', function() {
+            sectorChart.resize();
+        });
+    }
+
+    /**
+     * 加载卡片数据
+     */
+    function loadCardData() {
+        $.ajax({
+            url: ctx + 'get-card-data',  // 后端接口地址
+            type: 'GET',
+            data: {"isCeo":$("select[name='isCeo']").val()},
+            success: function(result) {
+                if (result.code == web_status.SUCCESS){
+                    renderCards(result.data);
+                }else {
+                    $.modal.alertWarning(result.msg)
+                }
+            },
+            error: function(xhr, status, error) {
+                $.modal.alertWarning(error)
+            },
+        });
+    }
+
+    /**
+     * 渲染卡片数据
+     * @param {Array} data - 卡片数据数组
+     */
+    function renderCards(data) {
+        // 遍历所有卡片和数据
+        $('.stat-card').each(function(index, element) {
+            // 只处理有对应数据的卡片
+            if (index < data.length) {
+                var cardData = data[index];
+                var $card = $(element);
+
+                // 计算完成率
+                var completionRate = 0;
+                if (cardData.total > 0) {
+                    completionRate = Math.round((cardData.completed / cardData.total) * 100);
+                }
+
+                // 填充数据
+                $card.find('.card-title').text(cardData.cardTitle);
+                $card.find('.total').text(cardData.total);
+                $card.find('.unSubmitTed').text(cardData.unSubmitTed);
+                $card.find('.inProgress').text(cardData.inProgress);
+                $card.find('.completed').text(cardData.completed);
+
+                // 设置进度条
+                $card.find('.progress-bar').css('width', completionRate + '%');
+                $card.find('.progress-percent').text(completionRate + '%');
+
+                // 根据完成率设置不同颜色
+                var progressColor = '#1ab394'; // 默认绿色
+                if (completionRate < 30) {
+                    progressColor = '#ed5565'; // 红色
+                } else if (completionRate < 70) {
+                    progressColor = '#f8ac59'; // 橙色
+                }
+                $card.find('.progress-bar').css('background-color', progressColor);
+            }
+        });
+    }
+</script>
+</body>
+</html>

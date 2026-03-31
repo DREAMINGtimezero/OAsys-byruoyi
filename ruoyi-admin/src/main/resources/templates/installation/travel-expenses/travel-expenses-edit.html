@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改差旅')" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="out-edit" th:object="${out}">
+        <input name="id" type="hidden"  th:field="*{id}" />
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">差旅描述：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" type="text" name="outDescribe" th:field="*{outDescribe}"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">差旅详情：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" type="text" name="outDetails" th:field="*{outDetails}"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">申请金额：</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="outMoney" th:field="*{outMoney}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">所属项目：</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="projectCode">
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer" />
+<script type="text/javascript">
+    var prefix = ctx + "installation/travel-expenses";
+
+    let projectCode = '[[${out.projectCode}]]';
+    $(function (){
+        initProjectCode();
+    })
+    // 初始化项目下拉框
+    function initProjectCode(){
+        $.ajax({
+            url: ctx + "project/statis/list",
+            type: "post",
+            dataType: "json",
+            data: {
+                "status": 2,
+                "pageNum": 1,
+                "pageSize": 1000
+            },
+            success: function(result) {
+                if (result.code === web_status.SUCCESS) {
+                    let selector = $("select[name='projectCode']");
+                    let options = [];
+                    let data = result.rows;
+                    for (let i = 0; i < data.length; i++) {
+                        console.log(projectCode);
+                        console.log(data[i].projectCode);
+                        if($.common.equals(projectCode,data[i].projectCode))
+                        {
+                            options.unshift("<option selected value='" + data[i].projectCode + "'>" + data[i].projectName + "</option>");
+                            continue;
+                        }
+                        options.push("<option value='" + data[i].projectCode + "'>" + data[i].projectName + "</option>");
+                    }
+                    selector.append(options.join(""));
+                }
+
+            }
+        })
+    }
+
+    $("#out-edit").validate({
+        rules:{
+            projectName:{
+                required:true
+            },
+            outDetails:{
+                required:true
+            },
+            outMoney:{
+                required:true
+            },
+        },
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/updateOut", $('#out-edit').serialize());
+        }
+    }
+</script>
+</body>
+</html>

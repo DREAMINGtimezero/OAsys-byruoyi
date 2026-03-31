@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.installation.mapper.OutMapper">
+    <resultMap type="Out" id="outResult">
+        <result property="id"    column="id"    />
+        <result property="outCode"    column="out_code"    />
+        <result property="outDescribe"    column="out_describe"    />
+        <result property="outDetails"    column="out_details"    />
+        <result property="outMoney"    column="out_money"    />
+        <result property="projectCode"    column="project_code"    />
+        <result property="projectName"    column="project_name"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="status"    column="status"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <resultMap type="OutChild" id="outChildResult">
+        <result property="id"    column="id"    />
+        <result property="outId"    column="out_id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="initiateNote"    column="initiate_note"    />
+        <result property="initiateTime"    column="initiate_time"    />
+        <result property="handleBy"    column="handle_by"    />
+        <result property="handleTime"    column="handle_time"    />
+        <result property="handleNote"    column="handle_note"    />
+        <result property="status"    column="status"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="fileNames"    column="file_names"    />
+    </resultMap>
+
+    <sql id="selectOutVo">
+        select id, out_code, out_describe, out_details, out_money,project_code, create_by, create_time, status, update_by, update_time, delete_flag from t_out
+    </sql>
+
+    <sql id="selectOutChildVo">
+        select id, out_id, create_by, create_time, initiate_note, initiate_time, handle_by, handle_time, handle_note, status, update_by, update_time, delete_flag, file_names from t_out_child
+    </sql>
+
+
+
+    <!--//主页面查询功能-->
+    <select id="selectOutList" parameterType="Out" resultMap="outResult">
+        select tt.id, tt.out_code, tt.out_describe, tt.out_details, tt.out_money, tt.project_code, tps.project_name, tt.create_by,
+        tt.create_time, tt.status, tt.update_by, tt.update_time, tt.delete_flag
+        from t_out tt left join t_project_statis tps on tt.project_code = tps.project_code
+        <where>
+            <if test="createBy != null  and createBy != ''">
+                EXISTS (SELECT 1 FROM t_out_child toc  WHERE  tt.id = toc.out_id
+                and toc.delete_flag = '0' and ( toc.create_by = #{createBy} OR  toc.handle_by = #{createBy} ))
+                and tt.delete_flag = '0'
+            </if>
+            <if test="id != null"> and tt.id = #{id}</if>
+            <if test="outCode != null  and outCode != ''"> and tt.out_code = #{outCode}</if>
+            <if test="outDescribe != null and outDescribe != ''"> and tt.out_describe LIKE CONCAT('%', #{outDescribe}, '%')</if>
+            <if test="outDetails != null  and outDetails != ''"> and tt.out_details = #{outDetails}</if>
+            <if test="outMoney != null "> and tt.out_money = #{outMoney}</if>
+            <if test="projectCode != null  and projectCode != ''"> and tt.project_code = #{projectCode}</if>
+            <if test="status != null "> and tt.status = #{status}</if>
+            <if test="beginCreateTime != null and beginCreateTime != ''">and tt.create_time >= #{beginCreateTime}</if>
+            <if test="endCreateTime != null and endCreateTime != ''">and tt.create_time <![CDATA[ <= ]]> #{endCreateTime}</if>
+            <!-- 未提交的数据只能自己查看，已提交的数据所有人都可以查看 -->
+            <!--<if test="createBy != null and createBy != ''">and(create_by = #{createBy} OR status = 2)</if>-->
+        </where>
+    </select>
+
+    <!--主表id查主表-->
+    <select id="selectOutById" parameterType="Long" resultMap="outResult">
+        <include refid="selectOutVo"/>
+        where id = #{id}
+    </select>
+
+    <!--//主页面添加功能-->
+    <insert id="insertOut" parameterType="Out" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into t_out
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="outCode != null and outCode != ''">out_code,</if>
+            <if test="outDescribe != null and outDescribe != ''">out_describe,</if>
+            <if test="outDetails != null and outDetails != ''">out_details,</if>
+            <if test="outMoney != null">out_money,</if>
+            <if test="projectCode != null and projectCode != ''">project_code,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="status != null">status,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="outCode != null and outCode != ''">#{outCode},</if>
+            <if test="outDescribe != null and outDescribe != ''">#{outDescribe},</if>
+            <if test="outDetails != null and outDetails != ''">#{outDetails},</if>
+            <if test="outMoney != null">#{outMoney},</if>
+            <if test="projectCode != null and projectCode != ''">#{projectCode},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <!--//主页面修改功能-->
+   <update id="updateOut" parameterType="Out">
+        update t_out
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="outCode != null and outCode != ''">out_code = #{outCode},</if>
+            <if test="outDescribe != null and outDescribe != ''">out_describe = #{outDescribe},</if>
+            <if test="outDetails != null and outDetails != ''">out_details = #{outDetails},</if>
+            <if test="outMoney != null">out_money = #{outMoney},</if>
+            <if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <!--//主页面删除功能-->
+    <delete id="deleteOutByIds" parameterType="Out">
+        update t_out set delete_flag = 1,update_by = #{updateBy} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")" index="">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <!--*******************子项*******************-->
+
+
+    <!--//主页面子表查询功能通过主表id-->
+    <select id="findOutChildByOutId" parameterType="OutChild" resultMap="outChildResult">
+        <include refid="selectOutChildVo"/>
+        where out_id = #{outId}
+    </select>
+
+    <!--查询子表通过子ID-->
+    <select id="selectChildById" parameterType="Long" resultMap="outChildResult">
+        <include refid="selectOutChildVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectChildList" parameterType="OutChild" resultMap="outChildResult">
+        <include refid="selectOutChildVo"/>
+        <where>
+            <if test="id != null "> and id = #{id}</if>
+            <if test="outId != null "> and out_id = #{outId}</if>
+            <if test="initiateNote != null  and initiateNote != ''"> and initiate_note = #{initiateNote}</if>
+            <if test="initiateTime != null "> and initiate_time = #{initiateTime}</if>
+            <if test="handleBy != null  and handleBy != ''"> and handle_by = #{handleBy}</if>
+            <if test="handleTime != null "> and handle_time = #{handleTime}</if>
+            <if test="handleNote != null  and handleNote != ''"> and handle_note = #{handleNote}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+            <if test="fileNames != null  and fileNames != ''"> and file_names = #{fileNames}</if>
+        </where>
+    </select>
+
+    <!--//添加子表功能-->
+    <insert id="insertChild" parameterType="OutChild" >
+        insert into t_out_child
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="outId != null">out_id,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="initiateNote != null">initiate_note,</if>
+            <if test="initiateTime != null">initiate_time,</if>
+            <if test="handleBy != null and handleBy != ''">handle_by,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="handleNote != null">handle_note,</if>
+            <if test="status != null">status,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="fileNames != null">file_names,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="outId != null">#{outId},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="initiateNote != null">#{initiateNote},</if>
+            <if test="initiateTime != null">#{initiateTime},</if>
+            <if test="handleBy != null and handleBy != ''">#{handleBy},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="handleNote != null">#{handleNote},</if>
+            <if test="status != null">#{status},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+        </trim>
+    </insert>
+
+    <update id="updateChild" parameterType="OutChild">
+        update t_out_child
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="outId != null">out_id = #{outId},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="initiateNote != null">initiate_note = #{initiateNote},</if>
+            <if test="initiateTime != null">initiate_time = #{initiateTime},</if>
+            <if test="handleBy != null">handle_by = #{handleBy},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="handleNote != null">handle_note = #{handleNote},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="fileNames != null and fileNames != ''">file_names = #{fileNames},</if>
+        </trim>
+        where id = #{id}
+    </update>
+</mapper>

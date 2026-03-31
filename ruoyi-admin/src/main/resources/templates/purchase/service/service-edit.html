@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改服务')" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal" id="form-service-edit" th:object="${myService}">
+        <input name="id" th:field="*{id}" type="hidden">
+
+        <div class="col-xs-12">
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">所属项目：</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="projectCode" required>
+                </select>
+            </div>
+        </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">服务编号：</label>
+                <div class="col-sm-8">
+                    <input name="serviceCode" th:field="*{serviceCode}" class="form-control" type="text" required>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">服务名称：</label>
+                <div class="col-sm-8">
+                    <input name="title" th:field="*{title}" class="form-control" type="text" required>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">描述信息：</label>
+                <div class="col-sm-8">
+                    <textarea name="description" class="form-control" required>[[*{description}]]</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">备注信息：</label>
+                <div class="col-sm-8">
+                    <input name="note" th:field="*{note}" class="form-control" type="text">
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">服务开销金额：</label>
+                <div class="col-sm-8">
+                    <input name="money" th:field="*{money}" class="form-control" type="number" required>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-xs-12">
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">费用类型：</label>
+            <div class="col-sm-8">
+                <select name="costType" id="costType" class="form-control" th:field="*{costType}" required>
+                    <option value="">请选择</option>
+                    <option value="1">费控内</option>
+                    <option value="2">费控外</option>
+                </select>
+            </div>
+        </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer" />
+<script th:inline="javascript">
+    $.validator.addMethod("maxDecimalLength", function(value, element, param) {
+        // 允许为空，required 会处理
+        if (!value) return true;
+
+        // 移除非数字字符（允许小数点）
+        let numStr = value.toString().replace(/[^0-9.]/g, '');
+
+        // 分割整数和小数部分
+        let parts = numStr.split('.');
+        let integerPart = parts[0];
+        let decimalPart = parts.length > 1 ? parts[1] : '';
+
+        // 总位数 = 整数位数 + 小数位数
+        let totalDigits = integerPart.length + decimalPart.length;
+        return totalDigits <= param;
+    }, "数字总位数超过限制");
+    const prefix = ctx + "purchase/service";
+    $("#form-service-edit").validate({
+        onkeyup: false,
+        focusCleanup: true,
+        rules:{
+            projectCode: {
+                required: true
+            },
+            money: {
+                required: true,
+                number: true,
+                min: 0,
+                maxDecimalLength: 13 // 调用自定义规则，限制总位数为13位
+            },
+        },
+        messages: {
+            projectCode: {
+                required: "请选择所属项目"
+            },
+            money: {
+                required: "请输入金额",
+                number: "请输入有效的金额",
+                min: "金额不能为负数",
+                maxDecimalLength: "数字总位数不能超过13位（不含小数点）"
+            },
+        },
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/edit", $('#form-service-edit').serialize());
+        }
+    }
+    let projectCode = [[${myService.projectCode}]];
+    $(function() {
+        initProjectCode();
+    });
+
+    // 初始化项目下拉框
+    function initProjectCode(){
+        $.ajax({
+            url: ctx + "project/statis/list",
+            type: "post",
+            dataType: "json",
+            data: {
+                "status": 2,
+                "pageNum": 1,
+                "pageSize": 1000
+            },
+            success: function(result) {
+                if (result.code === web_status.SUCCESS) {
+                    let selector = $("select[name='projectCode']");
+                    selector.empty();
+                    let options = [];
+                    let data = result.rows;
+                    for (let i = 0; i < data.length; i++) {
+                        console.log(projectCode);
+                        console.log(data[i].projectCode);
+                        if($.common.equals(projectCode,data[i].projectCode))
+                        {
+                            options.unshift("<option selected value='" + data[i].projectCode + "'>" + data[i].projectName + "</option>");
+                            continue;
+                        }
+                        options.push("<option value='" + data[i].projectCode + "'>" + data[i].projectName + "</option>");
+                    }
+                    selector.append(options.join(""));
+                }
+            }
+        })
+    }
+</script>
+</body>
+</html>

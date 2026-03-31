@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.work.mapper.WorkMapper">
+    <resultMap type="Work" id="WorkResult">
+        <result property="id"    column="id"    />
+        <result property="workDescribe"    column="work_describe"    />
+        <result property="fileNames"    column="file_names"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+
+    <sql id="selectWorkVo">
+        select id, work_describe, file_names, create_by, create_time, update_by, update_time, delete_flag, note from t_work
+    </sql>
+
+    <select id="selectWorkList" parameterType="Work" resultMap="WorkResult">
+        <include refid="selectWorkVo"/>
+        <where>
+            delete_flag = 0
+            <if test="id != null"> and id = #{id}</if>
+            <if test="workDescribe != null and workDescribe != ''"> and work_describe like concat('%', #{workDescribe}, '%') </if>
+            <if test="fileNames != null  and fileNames != ''"> and file_names = #{fileNames}</if>
+            <if test="beginCreateTime != null and beginCreateTime != ''">and create_time >= #{beginCreateTime}</if>
+            <if test="endCreateTime != null and endCreateTime != ''">and create_time <![CDATA[ <= ]]> #{endCreateTime}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+        </where>
+    </select>
+
+    <select id="selectWorkById" parameterType="Long" resultMap="WorkResult">
+        <include refid="selectWorkVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertWork" parameterType="Work" useGeneratedKeys="true" keyProperty="id">
+        insert into t_work
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="workDescribe != null">work_describe,</if>
+            <if test="fileNames != null">file_names,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="note != null">note,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="workDescribe != null">#{workDescribe},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="note != null">#{note},</if>
+        </trim>
+    </insert>
+
+    <update id="updateWork" parameterType="Work">
+        update t_work
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="workDescribe != null">work_describe = #{workDescribe},</if>
+            <if test="fileNames != null">file_names = #{fileNames},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteWorkByIds" parameterType="String">
+        update t_work set delete_flag = 1,update_by = #{updateBy} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('报销单列表')"/>
+    <th:block th:include="include :: bootstrap-select-css"/>
+    <style>
+        .hide-column {
+            display: none;
+        }
+
+        #accumulation-select {
+            border: none;
+            color: red;
+            font-weight:bold;
+        }
+
+        #accumulation-all {
+            border: none;
+            color: orange;
+            font-weight:bold;
+        }
+    </style>
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="service-form">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <label>报销明细：</label>
+                            <input type="text" name="costType"/>
+                        </li>
+                        <li class="select-selectpicker">
+                            <label>状态： </label>
+                            <select name="status" data-none-selected-text="请选择">
+                                <option value="">请选择</option>
+                                <option value="1">未提交</option>
+                                <option value="2">处理中</option>
+                                <option value="3">已完成</option>
+                            </select>
+                        </li>
+                        <li class="select-time">
+                            <label>创建时间： </label>
+                            <input type="text" class="time-input" id="startTime" placeholder="开始时间"
+                                   name="params[startTime]"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" id="endTime" placeholder="结束时间"
+                                   name="params[endTime]"/>
+                        </li>
+
+
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()">
+                                <i class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()">
+                                <i class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()">
+                <i class="fa fa-plus"></i> 添加
+            </a>
+            <a class="btn btn-primary single disabled" onclick="$.operate.edit()">
+                <i class="fa fa-edit"></i> 修改
+            </a>
+            <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()">
+                <i class="fa fa-remove"></i> 删除
+            </a>
+            <span>
+            <span style="margin-left:20px;margin-right:20px;">
+                <label>勾选求和：</label>
+                <span id="accumulation-select"></span>
+            </span>
+            <span>
+                <label>汇总：</label>
+                <span id="accumulation-all"></span>
+            </span>
+            </span>
+            <!--
+                        <a class="btn btn-warning multiple disabled" onclick="accumulate()">
+                            <i class="fa fa-calculator"></i> 求和
+                        </a>
+            -->
+        </div>
+        <div class="col-sm-12 select-table table-striped">
+            <table class="main-table" id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: bootstrap-select-js"/>
+<script th:src="@{/js/axios.min.js}"></script>
+<script th:src="@{/js/plugins/decimal/decimal.js}"></script>
+<script th:inline="javascript">
+    const prefix = ctx + "cost-management/expense-claim";
+    let rows;
+    let status = /*[[${status}]]*/undefined;
+    const claimStatus = {
+        UNSUBMIT: '1',
+        PROCESSING: '2',
+        COMPLETED: '3',
+        DEFAULT: 'default',
+        '1': {textContent: "未提交", classList: ["badge", "badge-danger"]},
+        '2': {textContent: "处理中", classList: ["badge", "badge-warning"]},
+        '3': {textContent: "完成", classList: ["badge", "badge-primary"]},
+        'default': {textContent: "未知", classList: ["badge"]},
+        statusNum: 3,
+    }
+    const claimSubStatus = {
+        UNSUBMIT: '1',
+        PROCESSING: '2',
+        COMPLETED: '3',
+        REJECTED: '4',
+        DEFAULT: 'default',
+        '1': {textContent: "未提交", classList: ["badge", "badge-danger"]},
+        '2': {textContent: "处理中", classList: ["badge", "badge-warning"]},
+        '3': {textContent: "已处理", classList: ["badge", "badge-primary"]},
+        '4': {textContent: "已驳回", classList: ["badge", "badge-default"]},
+        'default': {textContent: "未知", classList: ["badge", "badge-default"]},
+        statusNum: 4,
+    }
+    const classList = {
+        badge: 'badge',
+        primary: 'badge-primary',
+        warning: 'badge-warning',
+        success: 'badge-success',
+        danger: 'badge-danger'
+    }
+    $(function () {
+        if ($.common.isNotEmpty(status)) {
+            $("select[name='status']").val(status);
+        }
+        const options = {
+            url: prefix + "/list",
+            createUrl: prefix + "/add",
+            updateUrl: prefix + "/edit/{id}",
+            removeUrl: prefix + "/remove",
+            exportUrl: prefix + "/export",
+            modalName: "报销",
+            detailView: true,
+            onCheck: checkHandler,                           // 当选择此行时触发
+            onUncheck: uncheckHandler,                       // 当取消此行时触发
+            onCheckAll: onCheckAll,
+            onUncheckAll: onUncheckAll,
+            onLoadSuccess: function (data) {
+                rows = data.rows;
+                $('#accumulation-select').text('');
+                let sum = new Decimal('0');
+                for (let row of rows) {
+                    sum = sum.plus(new Decimal(row.cost));
+                }
+                $('#accumulation-all').text(sum);
+            },
+            onExpandRow: function (index, row, $detail) {
+                initChildTable(index, row, $detail);
+            },
+            columns: [
+                {
+                    checkbox: true
+                },
+                {
+                    field: 'id',
+                    title: '主键',
+                    align: 'center',
+                    visible: false
+                },
+                {
+                    field: 'costType',
+                    title: '报销明细',
+                    align: 'center',
+                },
+                {
+                    field: 'cost',
+                    title: '总金额',
+                    align: 'center',
+                },
+                {
+                    field: 'description',
+                    title: '描述信息',
+                    align: 'center',
+                },
+                {
+                    field: 'createBy',
+                    title: '创建人',
+                    align: 'center',
+                },
+                {
+                    field: 'createTime',
+                    title: '创建时间',
+                    align: 'center',
+                },
+                {
+                    field: 'updateBy',
+                    title: '最后操作人',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        if ($.common.isEmpty(value)) {
+                            value = row.createBy;
+                        }
+                        return `<span>${value}</span>`;
+                    }
+                },
+                {
+                    field: 'status',
+                    title: '状态',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        //1=未提交，2=处理中，3=已完成
+                        value = String(value);
+                        if (!claimStatus.hasOwnProperty(value)) {
+                            value = 'default';
+                        }
+                        return `<span class="${claimStatus[value].classList.join(' ')}">${claimStatus[value].textContent}</span>`;
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        const actions = [];
+                        actions.push(`<a class="btn btn-info btn-xs" href="javascript:;" onclick="showDetail(${row.id})" title="详情"><i class="fa fa-file-text-o"></i>详情</a>&nbsp;`);
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+
+    initChildTable = function (index, row, $detail) {
+        let childTable = $detail.html('<table class="child-table" style="table-layout:fixed"></table>').find('table');
+        $(childTable).bootstrapTable({//此处发起请求
+            url: prefix + "/sub" + "/list",
+            method: 'post',
+            sidePagination: "server",
+            contentType: "application/x-www-form-urlencoded",
+            queryParams: {
+                relativeId: row.id,
+            },
+            columns: [
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: '发起人'
+                },
+                {
+                    field: 'createPost',
+                    align: 'center',
+                    title: '发起人所属岗位'
+                },
+                {
+                    field: 'createDept',
+                    align: 'center',
+                    title: '发起人所属部门'
+                },
+                {
+                    field: 'handleBy',
+                    align: 'center',
+                    title: '处理人'
+                },
+                {
+                    field: 'handlePost',
+                    align: 'center',
+                    title: '处理人所属岗位'
+                },
+                {
+                    field: 'handleDept',
+                    align: 'center',
+                    title: '处理人所属部门'
+                },
+                {
+                    field: 'initiateTime',
+                    align: 'center',
+                    title: '发起时间'
+                },
+                {
+                    field: 'initiateNote',
+                    align: 'center',
+                    title: '发起意见'
+                },
+                {
+                    field: 'handleTime',
+                    align: 'center',
+                    title: '处理时间'
+                },
+                {
+                    field: 'handleNote',
+                    align: 'center',
+                    title: '处理意见'
+                },
+                {
+                    field: 'fileNames',
+                    align: 'center',
+                    title: '文件访问路径',
+                    visible: false
+                },
+                {
+                    field: 'status',
+                    title: '状态',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        if (Number(value) > claimSubStatus.statusNum) {
+                            value = 'default';
+                        } else {
+                            value = String(value);
+                        }
+                        return `<span  class="${claimSubStatus[value].classList.join(' ')}">${claimSubStatus[value].textContent}</span>`;
+                    }
+                },
+            ]
+        });
+    };
+
+    function showDetail(id) {
+        $.modal.popupRight(`服务信息`, prefix + `/detail/${id}`);
+    }
+
+    let accumulationInput = $('#accumulation-select');
+
+    /**
+     * 处理单行选中事件
+     * @param row
+     */
+    function checkHandler(row) {
+        let sum = accumulationInput.text();
+        sum = $.common.isNotEmpty(sum) ? sum : '0';
+        //实现无损计算
+        sum = new Decimal(sum).plus(new Decimal(row.cost)).toString();
+        accumulationInput.text(sum);
+    }
+
+    /**
+     * 处理单行取消选中事件
+     * @param row
+     */
+    function uncheckHandler(row) {
+        let sum = accumulationInput.text();
+        sum = $.common.isNotEmpty(sum) ? sum : '0';
+        sum = new Decimal(sum).minus(new Decimal(row.cost)).toNumber();
+        sum = sum <= 0 ? '' : sum;
+        accumulationInput.text(sum);
+    }
+
+    /**
+     * 处理全选事件
+     * @param rows
+     */
+    function onCheckAll(rows) {
+        let sum = new Decimal(0);
+        for (let row of rows) {
+            //防止出现计算精度问题
+            sum = sum.plus(new Decimal(row.cost));
+        }
+        accumulationInput.text(sum);
+    }
+
+    /**
+     * 处理全部取消勾选事件
+     * @param rows
+     */
+    function onUncheckAll(rows) {
+        accumulationInput.text('');
+    }
+</script>
+</body>
+</html>

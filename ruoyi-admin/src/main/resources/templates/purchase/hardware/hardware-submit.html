@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('硬件提交')" />
+    <th:block th:include="include :: bootstrap-fileinput-css"/>
+    <th:block th:include="include :: select2-css"/>
+    <th:block th:include="include :: layout-latest-css" />
+    <th:block th:include="include :: ztree-css" />
+</head>
+<body class="">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-hardwareChild-submit">
+        <!-- 隐藏字段存储流程ID -->
+        <input type="hidden" name="id" th:value="${hardwareChild.id}"/>
+        <input type="hidden" name="hardwareId" th:value="${hardwareChild.hardwareId}">
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">发起意见：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" name="initiateNote" id="initiateNote"></textarea>
+            </div>
+        </div>
+
+        <!--处理人选择框-->
+        <th:block th:include="include :: handlerInput" />
+
+        <input type="hidden" name="fileNames">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-content">
+                        <div class="form-group">
+                            <label class="font-noraml">文件上传</label>
+                            <div class="file-loading">
+                                <input id="multipleFile" name="files" type="file" multiple>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: bootstrap-fileinput-js" />
+<th:block th:include="include :: handlerInputJS" />
+<script type="text/javascript">
+    var prefix = ctx + "purchase/hardware";
+
+    formValidate("form-hardwareChild-submit");
+
+    $(document).ready(function () {
+        // 多图上传
+        $("#multipleFile").fileinput({
+            uploadUrl: ctx + 'common/uploads',
+            uploadAsync: false
+        }).on('filebatchuploadsuccess', function (event, data, previewId, index) {
+            debugger;
+            var rsp = data.response;
+            $("input[name='fileNames']").val(rsp.fileNames.replaceAll("/profile/upload",""));
+        }).on('fileremoved', function (event, id, index) {
+            $("input[name='" + event.currentTarget.id + "']").val('')
+        })
+
+    });
+
+
+    //提交按钮功能,并自动刷新
+    function submitHandler() {
+        let serialize = $('#form-hardwareChild-submit').serialize();
+        serialize.hardwareId = $("input[name='hardwareId']").val();
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/commit", serialize, function(result) {
+                if (result.code === web_status.SUCCESS) {
+                    top.$("iframe").each(function() {
+                        if (this.src.indexOf("hardware/detail") > -1) {
+                            this.contentWindow.initDetailTable();
+                            return false;
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+</script>
+</body>
+</html>

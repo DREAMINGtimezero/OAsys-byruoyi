@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.technicalaggrement.mapper.TechnicalAgreementMapper">
+
+    <sql id="selectTechnicalAgreementVo">
+        <trim prefix="" suffix="" suffixOverrides=",">
+            t_technical_agreement.project_code,
+            t_technical_agreement.technical_agreement_code,
+            t_technical_agreement.title,
+            t_technical_agreement.description,
+            t_technical_agreement.note,
+            t_technical_agreement.status,
+            t_technical_agreement.id,
+            t_technical_agreement.create_by,
+            t_technical_agreement.create_time,
+            t_technical_agreement.update_by,
+            t_technical_agreement.update_time,
+            t_technical_agreement.delete_flag
+        </trim>
+    </sql>
+    <sql id="linkedQueryOft_project_statis">
+        select
+        <include refid="selectTechnicalAgreementVo"/>
+        ,project_name
+        from t_technical_agreement left join
+        (select project_code, project_name from t_project_statis where delete_flag = 0) as t_project_statis
+        on t_technical_agreement.project_code =
+        t_project_statis.project_code
+    </sql>
+
+    <select id="selectTechnicalAgreementList" parameterType="TechnicalAgreement"
+            resultType="com.ruoyi.technicalaggrement.domain.TechnicalAgreement">
+        <include refid="linkedQueryOft_project_statis"/>
+        <where>
+            <if test="createBy!=null and createBy!=''">
+                EXISTS (SELECT 1 FROM t_technical_agreement_sub tsb WHERE t_technical_agreement.id =
+                tsb.technical_agreement_id
+                and tsb.delete_flag = 0 and ( tsb.create_by = #{createBy} OR tsb.handle_by = #{createBy} ))
+            </if>
+            <if test="projectCode != null  and projectCode != ''">and t_technical_agreement.project_code =
+                #{projectCode}
+            </if>
+            <if test="technicalAgreementCode != null  and technicalAgreementCode != ''">and technical_agreement_code
+                like
+                concat('%',#{technicalAgreementCode},'%')
+            </if>
+            <if test="title != null  and title != ''">and title like concat('%', #{title}, '%')</if>
+            <if test="description != null  and description != ''">and description like concat('%', #{description},
+                '%')
+            </if>
+            <if test="note != null  and note != ''">and note like concat('%', #{note}, '%')</if>
+            <if test="deleteFlag != null ">and delete_flag = #{deleteFlag}</if>
+            <if test="params.startTime != null and params.startTime != ''">and create_time &gt; #{params.startTime}</if>
+            <if test="params.endTime != null and params.endTime != ''">and create_time &lt; #{params.endTime}</if>
+            <if test="statusList != null and statusList.length > 0">
+                and status in
+                <foreach item="status" collection="statusList" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            <if test="projectName != null and projectName!='' ">and project_name like concat('%', #{projectName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectTechnicalAgreementById" parameterType="Long"
+            resultType="com.ruoyi.technicalaggrement.domain.TechnicalAgreement">
+        <include refid="linkedQueryOft_project_statis"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTechnicalAgreement" parameterType="TechnicalAgreement" useGeneratedKeys="true" keyProperty="id">
+        insert into t_technical_agreement
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">project_code,</if>
+            <if test="technicalAgreementCode != null and technicalAgreementCode != ''">technical_agreement_code,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="note != null">note,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">#{projectCode},</if>
+            <if test="technicalAgreementCode != null and technicalAgreementCode != ''">#{technicalAgreementCode},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="note != null">#{note},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTechnicalAgreement" parameterType="TechnicalAgreement">
+        update t_technical_agreement
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+            <if test="technicalAgreementCode != null and technicalAgreementCode != ''">technical_agreement_code =
+                #{technicalAgreementCode},
+            </if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="note != null">note = #{note},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteTechnicalAgreementById">
+        update t_technical_agreement
+        set delete_flag = 1,
+            update_by=#{updateBy}
+        where id = #{id}
+    </update>
+
+
+    <update id="deleteTechnicalAgreementByIds">
+        update t_technical_agreement
+        set delete_flag = 1,
+            update_by= #{updateBy}
+        where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectDeleteAble" resultType="java.lang.Integer">
+        select count(*) from t_technical_agreement
+        <where>
+            id in
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            and delete_flag = 0
+            and status=1
+        </where>
+    </select>
+
+</mapper>

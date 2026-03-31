@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.software.mapper.SoftwareProcessMapper">
+
+    <resultMap type="SoftwareProcess" id="SoftwareProcessResult">
+        <result property="id"    column="id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="initiateTime"    column="initiate_time"    />
+        <result property="initiateNote"    column="initiate_note"    />
+        <result property="handleBy"    column="handle_by"    />
+        <result property="handleTime"    column="handle_time"    />
+        <result property="handleNote"    column="handle_note"    />
+        <result property="status"    column="status"    />
+        <result property="softwareId"    column="software_id"    />
+        <result property="fileNames"    column="file_names"    />
+    </resultMap>
+
+    <sql id="selectSoftwareProcessVo">
+        select id, create_by, update_by, create_time, update_time, delete_flag, initiate_time, initiate_note, handle_by, handle_time, handle_note, status, software_id, file_names from t_software_process
+    </sql>
+
+    <select id="selectSoftwareProcessList" parameterType="SoftwareProcess" resultMap="SoftwareProcessResult">
+        <include refid="selectSoftwareProcessVo"/>
+        <where>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+            <if test="initiateTime != null "> and initiate_time = #{initiateTime}</if>
+            <if test="initiateNote != null  and initiateNote != ''"> and initiate_note = #{initiateNote}</if>
+            <if test="handleBy != null  and handleBy != ''"> and handle_by = #{handleBy}</if>
+            <if test="handleTime != null "> and handle_time = #{handleTime}</if>
+            <if test="handleNote != null  and handleNote != ''"> and handle_note = #{handleNote}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="softwareId != null "> and software_id = #{softwareId}</if>
+            <if test="fileNames != null  and fileNames != ''"> and file_names = #{fileNames}</if>
+        </where>
+    </select>
+
+    <select id="selectSoftwareProcessById" parameterType="Long" resultMap="SoftwareProcessResult">
+        <include refid="selectSoftwareProcessVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertSoftwareProcess" parameterType="SoftwareProcess" useGeneratedKeys="true" keyProperty="id">
+        insert into t_software_process
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="initiateTime != null">initiate_time,</if>
+            <if test="initiateNote != null">initiate_note,</if>
+            <if test="handleBy != null">handle_by,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="handleNote != null">handle_note,</if>
+            <if test="status != null">status,</if>
+            <if test="softwareId != null">software_id,</if>
+            <if test="fileNames != null">file_names,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="initiateTime != null">#{initiateTime},</if>
+            <if test="initiateNote != null">#{initiateNote},</if>
+            <if test="handleBy != null">#{handleBy},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="handleNote != null">#{handleNote},</if>
+            <if test="status != null">#{status},</if>
+            <if test="softwareId != null">#{softwareId},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSoftwareProcess" parameterType="SoftwareProcess">
+        update t_software_process
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="initiateTime != null">initiate_time = #{initiateTime},</if>
+            <if test="initiateNote != null">initiate_note = #{initiateNote},</if>
+            <if test="handleBy != null">handle_by = #{handleBy},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="handleNote != null">handle_note = #{handleNote},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="softwareId != null">software_id = #{softwareId},</if>
+            <if test="fileNames != null and fileNames != ''">file_names = #{fileNames},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSoftwareProcessById" parameterType="Long">
+        delete from t_software_process where id = #{id}
+    </delete>
+
+    <delete id="deleteSoftwareProcessByIds" parameterType="String">
+        delete from t_software_process where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

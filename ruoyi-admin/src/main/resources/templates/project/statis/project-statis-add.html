@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+	<th:block th:include="include :: header('新增项目')" />
+	<th:block th:include="include :: bootstrap-fileinput-css" />
+</head>
+<body class="">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<form class="form-horizontal m" id="project-statis-add">
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">项目名称：</label>
+				<div class="col-sm-8">
+					<input class="form-control" type="text" name="projectName">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">项目详情：</label>
+				<div class="col-sm-8">
+					<textarea name="projectDetail" maxlength="500" class="form-control" rows="3"></textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">项目备注：</label>
+				<div class="col-sm-8">
+					<textarea name="projectRemark" maxlength="500" class="form-control" rows="3"></textarea>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<th:block th:include="include :: footer" />
+	<th:block th:include="include :: bootstrap-fileinput-js" />
+	<script type="text/javascript">
+		var prefix = ctx + "project/statis";
+
+		$("#project-statis-add").validate({
+			rules:{
+				projectName:{
+					required:true
+				},
+			},
+		});
+
+		function submitHandler() {
+			if ($.validate.form()) {
+				$.operate.save(prefix + "/project-statis-add", $('#project-statis-add').serialize());
+			}
+	    }
+	</script>
+</body>
+</html>

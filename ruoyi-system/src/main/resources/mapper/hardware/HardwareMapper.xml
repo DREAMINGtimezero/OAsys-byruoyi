@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.hardware.mapper.HardwareMapper">
+    <!--主表-->
+    <resultMap type="Hardware" id="HardwareResult">
+        <result property="id"    column="id"    />
+        <result property="hardwareCode"    column="hardware_code"    />
+        <result property="hardwareName"    column="hardware_name"    />
+        <result property="hardwareDetails"    column="hardware_details"    />
+        <result property="money"    column="money"    />
+        <result property="projectCode"    column="project_code"    />
+        <result property="projectName"    column="project_name"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="status"    column="status"    />
+        <result property="costType"    column="cost_type"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+    <!--子表-->
+    <resultMap type="HardwareChild" id="HardwareChildResult">
+        <result property="id"    column="id"    />
+        <result property="hardwareId"    column="hardware_id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="initiateNote"    column="initiate_note"    />
+        <result property="initiateTime"    column="initiate_time"    />
+        <result property="handleBy"    column="handle_by"    />
+        <result property="handleTime"    column="handle_time"    />
+        <result property="handleNote"    column="handle_note"    />
+        <result property="status"    column="status"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+        <result property="fileNames"    column="file_names"    />
+        <result property="note"    column="note"    />
+    </resultMap>
+    <!--主表-->
+    <sql id="selectHardwareVo">
+        select id, hardware_code, hardware_name, hardware_details, money, project_code, create_by, create_time, status, cost_type, update_by, update_time, delete_flag, note from t_hardware
+    </sql>
+    <!--子表-->
+    <sql id="selectHardwareChildVo">
+        select id, hardware_id, create_by, create_time, initiate_note, initiate_time, handle_by, handle_time, handle_note, status, update_by, update_time, delete_flag, file_names, note from t_hardware_child
+    </sql>
+
+    <!--查询硬件主表-->
+    <select id="selectHardwareList" parameterType="Hardware" resultMap="HardwareResult">
+        select th.id, th.hardware_code, th.hardware_name, th.hardware_details, th.money,th.project_code,tps.project_name, th.create_by, th.create_time,
+        th.status, th.cost_type, th.update_by, th.update_time, th.delete_flag, th.note
+        from t_hardware th left join t_project_statis tps on th.project_code = tps.project_code
+        <where>
+            <if test="createBy != null  and createBy != ''">
+                EXISTS (SELECT 1 FROM t_hardware_child thc  WHERE  th.id = thc.hardware_id
+                and thc.delete_flag = '0' and ( thc.create_by = #{createBy} OR  thc.handle_by = #{createBy} ))
+                and th.delete_flag = '0'
+            </if>
+            <if test="id != null"> and th.id = #{id}</if>
+            <if test="hardwareCode != null  and hardwareCode != ''"> and th.hardware_code = #{hardwareCode}</if>
+            <if test="hardwareName != null  and hardwareName != ''"> and th.hardware_name like concat('%', #{hardwareName}, '%')</if>
+            <if test="hardwareDetails != null  and hardwareDetails != ''"> and th.hardware_details = #{hardwareDetails}</if>
+            <if test="money != null "> and th.money = #{money}</if>
+            <if test="projectCode != null  and projectCode != ''"> and th.project_code = #{projectCode}</if>
+            <if test="status != null "> and th.status = #{status}</if>
+            <if test="costType != null "> and th.cost_type = #{costType}</if>
+            <if test="note != null  and note != ''"> and th.note = #{note}</if>
+            <if test="beginCreateTime != null and beginCreateTime != ''">and th.create_time >= #{beginCreateTime}</if>
+            <if test="endCreateTime != null and endCreateTime != ''">and th.create_time <![CDATA[ <= ]]> #{endCreateTime}</if>
+            <!-- 未提交的数据只能自己查看，已提交的数据所有人都可以查看 -->
+            <!--<if test="createBy != null and createBy != ''">and(th.create_by = #{createBy} OR th.status = 2)</if>-->
+        </where>
+    </select>
+
+    <!--主键id查主键-->
+    <select id="selectHardwareById" parameterType="Long" resultMap="HardwareResult">
+        <include refid="selectHardwareVo"/>
+        where id = #{id}
+    </select>
+
+    <!--主表添加-->
+    <insert id="insertHardware" parameterType="Hardware" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into t_hardware
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="hardwareCode != null and hardwareCode != ''">hardware_code,</if>
+            <if test="hardwareName != null and hardwareName != ''">hardware_name,</if>
+            <if test="hardwareDetails != null">hardware_details,</if>
+            <if test="money != null">money,</if>
+            <if test="projectCode != null and projectCode != ''">project_code,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="status != null">status,</if>
+            <if test="costType != null">cost_type,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="note != null">note,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="hardwareCode != null and hardwareCode != ''">#{hardwareCode},</if>
+            <if test="hardwareName != null and hardwareName != ''">#{hardwareName},</if>
+            <if test="hardwareDetails != null">#{hardwareDetails},</if>
+            <if test="money != null">#{money},</if>
+            <if test="projectCode != null and projectCode != ''">#{projectCode},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="costType != null">#{costType},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="note != null">#{note},</if>
+        </trim>
+    </insert>
+
+    <!--主表修改-->
+    <update id="updateHardware" parameterType="Hardware">
+        update t_hardware
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="hardwareCode != null and hardwareCode != ''">hardware_code = #{hardwareCode},</if>
+            <if test="hardwareName != null and hardwareName != ''">hardware_name = #{hardwareName},</if>
+            <if test="hardwareDetails != null">hardware_details = #{hardwareDetails},</if>
+            <if test="money != null">money = #{money},</if>
+            <if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="costType != null">cost_type = #{costType},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <!--主页删除-->
+    <delete id="deleteHardwareByIds" parameterType="Hardware">
+        update t_hardware set delete_flag = 1,update_by = #{updateBy} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")" index="">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <!--******************************  子项  *********************************-->
+
+    <!--通过主表的id查询子表数据-->
+    <select id="findChildByHardwareId" parameterType="Long" resultMap="HardwareChildResult">
+        <include refid="selectHardwareChildVo"/>
+        where hardware_id = #{hardwareId}
+    </select>
+
+    <!--通过子表id查询子表数据-->
+    <select id="selectChildById" parameterType="Long" resultMap="HardwareChildResult">
+        <include refid="selectHardwareChildVo"/>
+        where id = #{id}
+    </select>
+
+    <!--查询子项-->
+    <select id="selectChildList" parameterType="HardwareChild" resultMap="HardwareChildResult">
+        <include refid="selectHardwareChildVo"/>
+        <where>
+            <if test="id != null"> and id = #{id}</if>
+            <if test="hardwareId != null "> and hardware_id = #{hardwareId}</if>
+            <if test="initiateNote != null  and initiateNote != ''"> and initiate_note = #{initiateNote}</if>
+            <if test="initiateTime != null "> and initiate_time = #{initiateTime}</if>
+            <if test="handleBy != null  and handleBy != ''"> and handle_by = #{handleBy}</if>
+            <if test="handleTime != null "> and handle_time = #{handleTime}</if>
+            <if test="handleNote != null  and handleNote != ''"> and handle_note = #{handleNote}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+            <if test="fileNames != null  and fileNames != ''"> and file_names = #{fileNames}</if>
+            <if test="note != null  and note != ''"> and note = #{note}</if>
+        </where>
+    </select>
+
+    <!--添加子项-->
+    <insert id="insertHardwareChild" parameterType="HardwareChild" useGeneratedKeys="true" keyProperty="id">
+        insert into t_hardware_child
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="hardwareId != null">hardware_id,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="initiateNote != null">initiate_note,</if>
+            <if test="initiateTime != null">initiate_time,</if>
+            <if test="handleBy != null">handle_by,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="handleNote != null">handle_note,</if>
+            <if test="status != null">status,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="fileNames != null">file_names,</if>
+            <if test="note != null">note,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="hardwareId != null">#{hardwareId},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="initiateNote != null">#{initiateNote},</if>
+            <if test="initiateTime != null">#{initiateTime},</if>
+            <if test="handleBy != null">#{handleBy},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="handleNote != null">#{handleNote},</if>
+            <if test="status != null">#{status},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+            <if test="note != null">#{note},</if>
+        </trim>
+    </insert>
+
+    <!--修改子项-->
+    <update id="updateChild" parameterType="HardwareChild">
+        update t_hardware_child
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="hardwareId != null">hardware_id = #{hardwareId},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="initiateNote != null">initiate_note = #{initiateNote},</if>
+            <if test="initiateTime != null">initiate_time = #{initiateTime},</if>
+            <if test="handleBy != null">handle_by = #{handleBy},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="handleNote != null">handle_note = #{handleNote},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="fileNames != null and fileNames != ''">file_names = #{fileNames},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <!--查询子表的状态为1或2的数量通过主id-->
+    <select id="selectChildStatusSum" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_hardware_child
+        WHERE hardware_id = #{hardwareId}
+          AND status IN (1, 2)
+          AND delete_flag = 0
+    </select>
+</mapper>

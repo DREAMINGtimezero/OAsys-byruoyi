@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('发起流程')" />
+    <th:block th:include="include :: bootstrap-fileinput-css"/>
+    <th:block th:include="include :: datetimepicker-css" />
+    <th:block th:include="include :: layout-latest-css" />
+    <th:block th:include="include :: ztree-css" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal" id="form-sub-initiate" th:object="${officeSuppliesSub}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <input name="officeSuppliesId" th:field="*{officeSuppliesId}" type="hidden">
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">发起人职位：</label>
+                <div class="col-sm-8">
+                    <input class="form-control" type="text" name="createPost" th:field="*{createPost}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">发起人所属部门：</label>
+                <div class="col-sm-8">
+                    <input class="form-control" type="text" name="createDept" th:field="*{createDept}" readonly>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">流程发起人备注：</label>
+                <div class="col-sm-8">
+                    <textarea name="initiateNote" class="form-control">[[*{initiateNote}]]</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!--处理人选择框-->
+        <th:block th:include="include :: handlerInput" />
+
+        <!--  upload files-->
+        <input type="hidden" name="fileNames">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-content">
+                        <div class="form-group">
+                            <label class="font-noraml">文件上传</label>
+                            <div class="file-loading">
+                                <input id="multipleFile" name="files" type="file" multiple>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: bootstrap-fileinput-js"/>
+<th:block th:include="include :: datetimepicker-js" />
+<th:block th:include="include :: handlerInputJS" />
+<script th:src="@{/js/jquery.tmpl.js}"></script>
+<script th:inline="javascript">
+    const prefix = ctx + "cost-management/office-supplies";
+    formValidate("form-sub-initiate");
+    $(document).ready(function () {
+        // 多图上传
+        $("#multipleFile").fileinput({
+            uploadUrl: ctx + 'common/uploads',
+            uploadAsync: false
+        }).on('filebatchuploadsuccess', function (event, data, previewId, index) {
+            var rsp = data.response;
+            $("input[name='fileNames']").val(rsp.fileNames.replaceAll("/profile/upload",""));
+        }).on('fileremoved', function (event, id, index) {
+            $("input[name='" + event.currentTarget.id + "']").val('')
+        })
+    });
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/sub-initiate", $('#form-sub-initiate').serialize(), submitCallback)
+        }
+    }
+    function submitCallback(result) {
+        if (result.code === web_status.SUCCESS){
+            top.$("iframe").each(function() {
+                if (this.src.indexOf("detail") > -1) {
+                    this.contentWindow.initDetailTable();
+                    return false;
+                }
+            });
+        }else {
+            $.modal.msgWarning(result.msg);
+        }
+    }
+
+</script>
+
+</body>
+</html>

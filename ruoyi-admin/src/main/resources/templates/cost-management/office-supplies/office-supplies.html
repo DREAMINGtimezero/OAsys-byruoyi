@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('办公用品列表')" />
+    <th:block th:include="include :: bootstrap-select-css"/>
+    <style>
+        .hide-column {
+            display: none;
+        }
+    </style>
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="formId">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <label>用品名称：</label>
+                            <input type="text" name="suppliesName"/>
+                        </li>
+                        <li class="select-selectpicker">
+                            <label>状态：</label>
+                            <select name="status" data-none-selected-text="请选择">
+                                <option value="">请选择</option>
+                                <option value="1">未提交</option>
+                                <option value="2">处理中</option>
+                                <option value="3">已完成</option>
+                            </select>
+                        </li>
+
+                        <li class="select-time">
+                            <label>创建时间：</label>
+                            <input type="text" class="time-input" id="startTime" placeholder="开始时间"
+                                   name="params[startTime]"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" id="endTime" placeholder="结束时间"
+                                   name="params[endTime]"/>
+                        </li>
+
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()" >
+                <i class="fa fa-plus"></i> 添加
+            </a>
+            <a class="btn btn-primary single disabled" onclick="$.operate.edit()" >
+                <i class="fa fa-edit"></i> 修改
+            </a>
+            <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" >
+                <i class="fa fa-remove"></i> 删除
+            </a>
+        </div>
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: bootstrap-select-js"/>
+<script th:src="@{/js/axios.min.js}"></script>
+<script th:inline="javascript">
+    const prefix = ctx + "cost-management/office-supplies";
+    let status = /*[[${status}]]*/undefined;
+
+    $(function() {
+        if ($.common.isNotEmpty(status) ) {
+            $("select[name='status']").val(status);
+        }
+
+        var options = {
+            url: prefix + "/list",
+            createUrl: prefix + "/add",
+            updateUrl: prefix + "/edit/{id}",
+            removeUrl: prefix + "/remove",
+            detailUrl: prefix + "/details/{id}",
+            exportUrl: prefix + "/export",
+            modalName: "办公用品",
+            detailView: true,
+            onExpandRow : function(index, row, $detail) {
+                initChildTable(index, row, $detail);
+            },
+            columns: [{
+                checkbox: true
+            },
+                {
+                    field: 'id',
+                    title: '主键',
+                    align: 'center',
+                    visible: false
+                },
+                {
+                    field: 'suppliesName',
+                    title: '用品名称',
+                    align: 'center',
+                },
+                {
+                    field: 'unitPrice',
+                    title: '单价',
+                    align: 'center',
+                },
+                {
+                    field: 'quantity',
+                    title: '数量',
+                    align: 'center',
+                },
+                {
+                    field: 'totalCost',
+                    title: '总金额',
+                    align: 'center',
+                },
+                {
+                    field: 'description',
+                    title: '描述信息',
+                    align: 'center',
+                },
+                {
+                    field: 'createBy',
+                    title: '创建人',
+                    align: 'center',
+                },
+                {
+                    field: 'createTime',
+                    title: '创建时间',
+                    align: 'center',
+                },
+                {
+                    field: 'updateBy',
+                    title: '最后操作人',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        if ($.common.isEmpty(value)) {
+                            value = row.createBy;
+                        }
+                        return `<span>${value}</span>`;
+                    }
+                },
+                {
+                    field: 'status',
+                    title: '状态',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';
+                        } else if (value == 2) {
+                            return '<span class="badge badge-warning">处理中</span>';
+                        }else if (value == 3) {
+                            return '<span class="badge badge-success">已完成</span>';
+                        }
+                        return '<span class="badge badge-default">未知</span>';
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        const actions = [];
+                        actions.push(`<a class="btn btn-info btn-xs" href="javascript:;" onclick="showDetail(${row.id})" title="办公用品详情"><i class="fa fa-file-text-o"></i>详情</a>&nbsp;`);
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+
+    initChildTable = function (index, row, $detail) {
+        let childTable = $detail.html('<table class="child-table" style="table-layout:fixed"></table>').find('table');
+        $(childTable).bootstrapTable({//此处发起请求
+            url: prefix + "/sub-list",
+            method: 'post',
+            sidePagination: "server",
+            contentType: "application/x-www-form-urlencoded",
+            queryParams: {
+                relativeId: row.id,
+            },
+            columns: [
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: '发起人'
+                },
+                {
+                    field: 'createPost',
+                    align: 'center',
+                    title: '发起人所属岗位'
+                },
+                {
+                    field: 'createDept',
+                    align: 'center',
+                    title: '发起人所属部门'
+                },
+                {
+                    field: 'handleBy',
+                    align: 'center',
+                    title: '处理人'
+                },
+                {
+                    field: 'handlePost',
+                    align: 'center',
+                    title: '处理人所属岗位'
+                },
+                {
+                    field: 'handleDept',
+                    align: 'center',
+                    title: '处理人所属部门'
+                },
+                {
+                    field: 'initiateTime',
+                    align: 'center',
+                    title: '发起时间'
+                },
+                {
+                    field: 'initiateNote',
+                    align: 'center',
+                    title: '发起意见'
+                },
+                {
+                    field: 'handleTime',
+                    align: 'center',
+                    title: '处理时间'
+                },
+                {
+                    field: 'handleNote',
+                    align: 'center',
+                    title: '处理意见'
+                },
+                {
+                    field: 'fileNames',
+                    align: 'center',
+                    title: '文件访问路径',
+                    visible: false
+                },
+                {
+                    field: 'status',
+                    title: '状态',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';
+                        } else if (value == 2) {
+                            return '<span class="badge badge-warning">待处理</span>';
+                        } else if (value == 3) {
+                            return '<span class="badge badge-success">已处理</span>';
+                        } else if (value == 4) {
+                            return '<span class="badge badge-default">已驳回</span>';
+                        }
+                        return '<span class="badge badge-default">未知</span>';
+                    }
+                },
+            ]
+        });
+    };
+    function showDetail(id) {
+        table.set();
+        $.modal.popupRight('办公用品详情', prefix + `/details/${id}`)
+    }
+
+</script>
+</body>
+</html>

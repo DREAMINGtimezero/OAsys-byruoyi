@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('添加差旅费用申请')" />
+</head>
+<body class="">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <form class="form-horizontal m" id="out-add">
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">所属项目：</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="projectCode">
+                    <option value="">请选择</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">差旅描述：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" type="text" name="outDescribe"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">差旅详情：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" type="text" name="outDetails"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">申请金额：</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="number" name="outMoney">
+            </div>
+        </div>
+    </form>
+</div>
+
+<th:block th:include="include :: footer" />
+<script type="text/javascript">
+    var prefix = ctx + "installation/travel-expenses";
+
+    $(function (){
+        initProjectCode();
+    })
+    // 初始化项目下拉框
+    function initProjectCode(){
+        $.ajax({
+            url: ctx + "project/statis/list",
+            type: "post",
+            dataType: "json",
+            data: {
+                "status": 2,
+                "pageNum": 1,
+                "pageSize": 1000
+            },
+            success: function(result) {
+                debugger;
+                if (result.code == web_status.SUCCESS) {
+                    var data = result.rows;
+                    for (var i = 0; i < data.length; i++) {
+                        $("select[name='projectCode']").append(
+                            "<option value='" + data[i].projectCode + "'>" + data[i].projectName + "</option>");}
+                }
+            }
+        })
+    }
+
+    $("#out-add").validate({
+        rules:{
+            projectCode:{
+                required:true
+            },
+            outDescribe:{
+                required:true
+            },
+            outDetails:{
+                required:true
+            },
+            outMoney:{
+                required:true
+            },
+        },
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/insertOut", $('#out-add').serialize());
+        }
+    }
+</script>
+</body>
+</html>

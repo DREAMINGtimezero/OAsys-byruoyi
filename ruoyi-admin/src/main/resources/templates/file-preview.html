@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('在线预览')" />
+    <style>
+        .file-item {
+            position: relative;
+            display: inline-block;
+            width: 180px;
+            height: 200px;
+            margin: 10px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .file-item:hover {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            border-color: #1890ff;
+        }
+        .file-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #6c757d;
+        }
+        .file-name {
+            text-align: center;
+            word-break: break-all;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        .file-type {
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        /* 全屏预览模态框样式 */
+        .file-preview-modal .modal-dialog {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .file-preview-modal .modal-content {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100vh !important;
+            border-radius: 0 !important;
+            border: none !important;
+        }
+
+        .file-preview-modal .modal-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+        }
+
+        .file-preview-modal .modal-body {
+            padding: 0;
+            text-align: center;
+            height: 100% !important;
+            padding-top: 56px; /* 为头部留出空间 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+        }
+
+        /* 预览内容样式调整 */
+        .preview-content {
+            max-width: 100% !important;
+            max-height: calc(100vh - 56px) !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain;
+        }
+
+        .pdf-preview {
+            width: 100% !important;
+            height: calc(100vh - 56px) !important;
+            border: none;
+        }
+
+        /* 全屏按钮样式 */
+        .fullscreen-btn {
+            position: absolute;
+            right: 60px;
+            top: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>文件列表</h5>
+                    <input type="hidden" id="fileNames" th:value="${fileNames}">
+                </div>
+                <div class="ibox-content">
+                    <div id="fileList" class="file-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预览模态框 -->
+<div class="modal fade file-preview-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="fullscreen-btn" id="toggleFullscreen">
+                    <i class="fa fa-expand"></i>
+                </button>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title" id="previewTitle">文件预览</h4>
+            </div>
+            <div class="modal-body" id="previewBody">
+                <!-- 预览内容将在这里加载 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:include="include :: footer" />
+<script type="text/javascript">
+    $(function() {
+        // 从后端获取文件名列表
+        var fileNames = $("#fileNames").val();
+        var fileList = fileNames.split(',');
+        var fileContainer = $('#fileList');
+        var isFullscreen = false;
+
+        // 支持预览的文件类型
+        var previewableTypes = {
+            image: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+            pdf: ['pdf']
+        };
+
+        // 生成文件列表
+        $.each(fileList, function(index, fileName) {
+            if (!fileName.trim()) return;
+            // 显示在页面上的文件名处理
+            var fileNameDisplay = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.lastIndexOf("_"))+ fileName.substring(fileName.lastIndexOf("."));
+            // 获取文件扩展名
+            var ext = fileName.split('.').pop().toLowerCase();
+            var fileType = getFileType(ext);
+            var iconClass = getFileIconClass(fileType, ext);
+            // 创建文件项
+            var fileItem = $('<div class="file-item" data-filename="' + fileName + '" data-type="' + fileType + '"></div>');
+            fileItem.append('<div class="file-icon"><i class="' + iconClass + '"></i></div>');
+            fileItem.append('<div class="file-name">' + fileNameDisplay + '</div>');
+            fileItem.append('<div class="file-type">' + getFileTypeName(fileType, ext) + '</div>');
+
+            fileContainer.append(fileItem);
+        });
+
+        // 点击文件项事件
+        $('.file-item').click(function() {
+            var fileName = $(this).data('filename');
+            var fileType = $(this).data('type');
+            var previewBody = $('#previewBody');
+            var previewTitle = $('#previewTitle');
+
+            previewTitle.text(fileName);
+            previewBody.html('');
+
+            // 根据文件类型处理预览
+            switch(fileType) {
+                case 'image':
+                    var img = $('<img class="preview-content" alt="' + fileName + '">');
+                    img.attr('src', ctx + 'common/previewFile?fileName=' + encodeURIComponent(fileName));
+                    previewBody.append(img);
+                    $('.file-preview-modal').modal('show');
+                    break;
+                case 'pdf':
+                    var pdfContainer = $('<embed class="pdf-preview" type="application/pdf">');
+                    pdfContainer.attr('src', ctx + 'common/previewFile?fileName=' + encodeURIComponent(fileName));
+                    previewBody.append(pdfContainer);
+                    $('.file-preview-modal').modal('show');
+                    break;
+                default:
+                    $.modal.alertWarning('该文件类型(' + getFileTypeName(fileType, fileName.split('.').pop().toLowerCase()) + ')不支持在线预览');
+                    break;
+            }
+        });
+
+        // 全屏切换功能
+        $('#toggleFullscreen').click(function(e) {
+            e.stopPropagation();
+            var modal = $('.file-preview-modal');
+            var modalDialog = modal.find('.modal-dialog');
+            var icon = $(this).find('i');
+
+            if (!isFullscreen) {
+                // 进入全屏
+                if (modalDialog[0].requestFullscreen) {
+                    modalDialog[0].requestFullscreen();
+                } else if (modalDialog[0].mozRequestFullScreen) {
+                    modalDialog[0].mozRequestFullScreen();
+                } else if (modalDialog[0].webkitRequestFullscreen) {
+                    modalDialog[0].webkitRequestFullscreen();
+                } else if (modalDialog[0].msRequestFullscreen) {
+                    modalDialog[0].msRequestFullscreen();
+                }
+                icon.removeClass('fa-expand').addClass('fa-compress');
+            } else {
+                // 退出全屏
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                icon.removeClass('fa-compress').addClass('fa-expand');
+            }
+            isFullscreen = !isFullscreen;
+        });
+
+        // 监听全屏状态变化
+        document.addEventListener('fullscreenchange', updateFullscreenIcon);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+        document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
+        document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+
+        function updateFullscreenIcon() {
+            var icon = $('#toggleFullscreen').find('i');
+            if (document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement) {
+                isFullscreen = true;
+                icon.removeClass('fa-expand').addClass('fa-compress');
+            } else {
+                isFullscreen = false;
+                icon.removeClass('fa-compress').addClass('fa-expand');
+            }
+        }
+
+        // 辅助函数：获取文件类型
+        function getFileType(ext) {
+            if (previewableTypes.image.indexOf(ext) !== -1) {
+                return 'image';
+            } else if (previewableTypes.pdf.indexOf(ext) !== -1) {
+                return 'pdf';
+            } else {
+                return 'other';
+            }
+        }
+
+        // 辅助函数：获取文件图标样式
+        function getFileIconClass(fileType, ext) {
+            switch(fileType) {
+                case 'image':
+                    return 'fa fa-file-image-o text-primary';
+                case 'pdf':
+                    return 'fa fa-file-pdf-o text-danger';
+                default:
+                    return 'fa fa-file-o text-muted';
+            }
+        }
+
+        // 辅助函数：获取文件类型名称
+        function getFileTypeName(fileType, ext) {
+            switch(fileType) {
+                case 'image':
+                    return '图片文件(' + ext + ')';
+                case 'pdf':
+                    return 'PDF文件(' + ext + ')';
+                default:
+                    return '文件(' + ext + ')';
+            }
+        }
+    });
+</script>
+</body>
+</html>

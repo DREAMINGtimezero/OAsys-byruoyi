@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('查看邮件内容')" />
+    <th:block th:include="include :: bootstrap-fileinput-css"/>
+    <th:block th:include="include :: select2-css"/>
+</head>
+<body class="">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal" id="form-emailDetail" th:object="${emailDetail}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">邮件内容：</label>
+                <div class="col-sm-8">
+                    <div class="form-control" style="height:auto; white-space:pre-wrap; word-break:break-all;" readonly
+                         th:text="*{emailDetail}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: bootstrap-fileinput-js" />
+<script type="text/javascript">
+
+    $("#form-emailDetail").validate({
+        onkeyup: false,
+        focusCleanup: true
+    });
+
+</script>
+</body>
+</html>

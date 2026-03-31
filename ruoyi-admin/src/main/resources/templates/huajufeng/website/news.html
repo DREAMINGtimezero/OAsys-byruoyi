@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新闻中心</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script th:inline="javascript">
+    var ctx = [[@{/}]];
+    var lockscreen = [[${session.lockscreen}]];
+    if (lockscreen) { window.top.location = ctx + "lockscreen"; }
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#0A2463',
+            accent: '#3E92CC',
+            dark: '#121212',
+            light: '#F8FAFC'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+    }
+    .fa-admin::before {
+      content: "\f007";
+    }
+    .other-company1 {
+      height: 220px;
+      width: 450px;
+      margin: 0 auto;
+    }
+    .other-company2 {
+      height: 220px;
+      width: 415px;
+      margin: 0 auto;
+    }
+    .pt-16 {
+      padding-top: 2rem;
+    }
+    .hover-underline {
+      position: relative;
+      display: inline-block;
+    }
+    .hover-underline::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background-color: #ffffffcc;
+      transition: width 0.4s ease-in-out;
+    }
+    .hover-underline:hover::after {
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body class="font-inter bg-light text-dark antialiased">
+<!-- 导航栏 -->
+<header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300" style="background: linear-gradient(135deg, rgb(186 57 27) 0%, #000000 100%);">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center py-4">
+      <div class="flex items-center">
+        <div>
+          <img th:src="@{/img/huajufeng/a01.png}" style="width: 90px;height: 50px;left: -10px;position: relative;">
+        </div>
+      </div>
+
+      <!-- 桌面导航 -->
+      <nav class="hidden md:flex space-x-8">
+        <a th:href="@{../}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">首页</a>
+        <a th:href="@{overview}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">产品概览</a>
+        <a th:href="@{service}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">技术服务</a>
+        <a th:href="@{cases}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">成功案例</a>
+        <a th:href="@{honor}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">资质荣誉</a>
+        <a th:href="@{news}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">新闻中心</a>
+        <a th:href="@{../#contact}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">联系我们</a>
+      </nav>
+
+      <!-- 移动端菜单按钮 -->
+      <button id="menu-toggle" class="md:hidden text-white focus:outline-none">
+        <i class="fa fa-bars text-2xl"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- 移动端导航菜单 -->
+  <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+    <div class="px-4 py-3 space-y-3">
+      <a th:href="@{../}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">首页</a>
+      <a th:href="@{overview}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">产品概览</a>
+      <a th:href="@{service}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">技术服务</a>
+      <a th:href="@{cases}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">成功案例</a>
+      <a th:href="@{honor}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">资质荣誉</a>
+      <a th:href="@{news}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">新闻中心</a>
+      <a th:href="@{../#contact}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">联系我们</a>
+    </div>
+  </div>
+</header>
+
+<!-- 新闻中心 -->
+<section id="about" class="py-20 bg-white">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16 flex items-center justify-center">
+      <div class="flex-grow h-0.5 bg-[rgb(0,0,0)]"></div>
+      <h2 class="text-[clamp(1.2rem,3vw,2rem)] font-bold text-dark mb-0 px-4">
+        <span class="text-primary" style="color: #000000">新闻中心</span>
+      </h2>
+      <div class="flex-grow h-0.5 bg-[rgb(0,0,0)]"></div>
+    </div>
+
+    <!-- 第一层 -->
+    <div class="flex flex-col lg:flex-row gap-12 items-center">
+      <div class="lg:w-1/2 relative justify-center">
+        <div style="text-align: center">
+          <img th:src="@{/img/huajufeng/a2.jpg}" class="w-full h-auto" style="width: 650px;height: 450px; border-radius: 20px;">
+        </div>
+      </div>
+      <div class="lg:w-1/2">
+        <p style="font-size: 23px; text-align: center">
+          安徽工业大学-华钜峰工程技术（上海）有限公司
+        </p>
+        <hr>
+        <p>&emsp;&emsp;华钜峰工程技术（上海）有限公司董事长、2003届校友杨一伟率队来冶金工程学院开展产学研交流，并与学院举行产学研合作协议签约仪式。 冶金工程学院院长龙红明、副院长赵卓、冶金工程系常立忠教授及部分骨干教师参加，签约仪式由赵卓主持。</p>
+        <p>&emsp;&emsp;龙红明对杨一伟校友等一行的到访表示热烈欢迎，希望通过本次签约，双方能够发挥各自优势，在协同育人、科技创新和省级项目攻关等领域展开深度密切合作。赵卓介绍了冶金工程学院在学科发展历程特色、师资队伍、科研团队、研究方向及成果、人才培养、科研平台等方面的情况。</p>
+        <p>&emsp;&emsp;杨一伟校友回顾了在母校的学习经历，对母校及冶金工程学院近年来的快速发展和取得的成绩感到欣喜。同时，他介绍了从创办上海宝衢自动化系统工程有限公司到 华钜峰工程技术（上海）有限公司的心路历程，以及将和学院开展的产学研合作情况，希望与母校开展更广泛的校企合作，助力母校事业发展再上新台阶。</p>
+        <p>&emsp;&emsp;双方在会上就智能冶金等方向进行了深入交流，讨论了拟开展合作项目的研究内容和实施方案等。最后，学院副院长赵卓和华钜峰公司总助李温馨代表双方正式签署了 产学研合作协议，主要内容包括科技成果转化、人才培养、技术合作和资源共享等多个方面，通过优势互补、产学研深度融合，促进双方事业的高质量发展。</p>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 第二层 -->
+    <div class="flex flex-col lg:flex-row gap-12 items-center">
+      <div class="lg:w-1/2" style="margin-left: 10px">
+        <p style="font-size: 23px; text-align: center">
+          冶金工业规划研究院-华钜峰工程技术（上海）有限公司
+        </p>
+        <hr>
+        <p style="font-size: 18px">&emsp;&emsp;2025年8月6日，冶金工业规划研究院（以下简称 “规划院”）王强博士带领专业团队，赴华钜峰工程技术（上海）有限公司开展专项技术交流与行业调研活动， 旨在深化产业链协同、推动冶金行业绿色低碳转型实践。</p>
+        <p style="font-size: 18px">&emsp;&emsp;交流过程中，王强博士团队结合规划院在冶金行业顶层设计、产能优化、环保技术升级等领域的研究成果，围绕当前行业发展痛点、低碳技术应用路径及未来产业布 局规划等核心议题，与华钜峰工程技术（上海）有限公司相关负责人展开深入研讨。双方就如何依托规划院的专业技术支撑，破解企业发展瓶颈、提升行业整体竞争 力达成多项共识，并明确了后续合作推进的重点方向。</p>
+      </div>
+      <div class="lg:w-1/2 relative">
+        <div style="text-align: center">
+          <img th:src="@{/img/huajufeng/a6.jpg}" class="w-full h-auto" style="width:500px; height:510px; display:block; margin:0 auto; border-radius: 15px;">
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 第三层 -->
+    <div class="flex flex-col lg:flex-row gap-12 items-center">
+      <div class="flex flex-col lg:flex-row gap-4 items-center lg:w-1/2 relative">
+        <div class="flex flex-col gap-4">
+          <img th:src="@{/img/huajufeng/news01.jpg}" class="w-full h-auto rounded" style="width:350px; height:250px;">
+          <img th:src="@{/img/huajufeng/news02.jpg}" class="w-full h-auto rounded" style="width:350px; height:250px;">
+        </div>
+        <img th:src="@{/img/huajufeng/news03.jpg}" class="w-full h-auto rounded" style="width:280px; height:380px;">
+      </div>
+      <div class="lg:w-1/2">
+        <p style="font-size: 23px; text-align: center">
+          华钜峰工程技术（上海）有限公司与安徽工业大学冶金工程学院共探数字化出铁沟研究新成果
+        </p>
+        <hr>
+        <p style="font-size: 18px">&emsp;&emsp;2025年10月13日，华钜峰工程技术（上海）有限公司董事长杨一伟率队再次走进安徽工业大学冶金工程学院，与安徽工业大学冶金工程学院朱正海教授、安徽工业大学冶金工程学院何飞老师就数字化出铁沟最新研究成果开展专题研讨。 </p>
+        <p style="font-size: 18px">&emsp;&emsp;作为双方产学研合作的深化举措，本次交流在学院党建会议室聚焦学术前沿，通过数值模拟实验成果展示深入剖析技术细节，后续还实地考察工业设施。依托既有合作基础，双方此次联动进一步推动数字化出铁沟技术在创新研发与产业应用上的融合，为冶金领域技术升级注入新动能。</p>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 第四层 -->
+    <div class="flex flex-col lg:flex-row gap-12 items-center">
+      <div class="lg:w-1/2" style="margin-left: 10px">
+        <p style="font-size: 23px; text-align: center">
+          华钜峰工程技术（上海）有限公司聆听马鞍山招商引资政策解读，助力产业发展新布局
+        </p>
+        <hr>
+        <p style="font-size: 18px">&emsp;&emsp;2025年10月14日，马鞍山慈湖国家高新区投资促进局郭健局长向华钜峰工程技术（上海）有限公司董事长杨一伟详细介绍了马鞍山慈湖高新区招商引资相关政策。</p>
+        <p style="font-size: 18px">&emsp;&emsp;双方在会议室围绕政策细则深入交流，郭健结合“慈湖高新区现状企业分布图”，清晰阐述区域产业布局与招商优势。此次政策解读为华钜峰在马鞍山的产业发展与布局提供了重要参考，助力企业把握发展新机遇。</p>
+      </div>
+      <div class="lg:w-1/2 relative">
+        <div style="text-align: center">
+          <img th:src="@{/img/huajufeng/news04.jpg}" class="w-full h-auto" style="width:550px; height:400px; display:block; margin:0 auto; border-radius: 20px;">
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 第五层 -->
+    <div class="flex flex-col lg:flex-row gap-12 items-center">
+      <div class="flex flex-col lg:flex-row gap-4 items-center lg:w-1/2 relative justify-center">
+        <div class="flex flex-col gap-4 ">
+          <img th:src="@{/img/huajufeng/news05.jpg}" class="w-full h-auto rounded" style="width:550px; height:400px; display:block; margin:0 auto; border-radius: 20px;">
+        </div>
+      </div>
+      <div class="lg:w-1/2">
+        <p style="font-size: 23px; text-align: center">
+          华钜峰工程技术（上海）有限公司受邀参与2025“高校院所行”北京科技大学站活动 共探科技成果转化新路径
+        </p>
+        <hr>
+        <p style="font-size: 18px">&emsp;&emsp;2025年10月17日，华钜峰工程技术（上海）有限公司受邀出席由安徽省科学技术厅主办的“2025高校院所行——走进北京科技大学”活动。</p>
+        <p style="font-size: 18px">&emsp;&emsp;活动现场，华钜峰参会人员与各方围绕科技成果转化、产学研协同创新等方向深度交流。此次活动为企业搭建了与北京科技大学及安徽政企对接的桥梁，助力华钜峰在技术创新与产业布局上开辟新空间。</p>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 第六层 -->
+    <div class="flex flex-col lg:flex-row gap-12 items-center">
+      <div class="lg:w-1/2" style="margin-left: 10px">
+        <p style="font-size: 23px; text-align: center">
+          华钜峰工程技术（上海）有限公司董事长杨一伟率队出席第十五届中国钢铁年会与安徽工业大学朱正海教授共探新质生产力助推钢铁科技强国建设
+        </p>
+        <hr>
+        <p>&emsp;&emsp;2025年10月23日上午，第十五届中国钢铁年会在北京开幕，此次会议来自钢铁企业、冶金材料类高校及研究院所等单位的近2000名领导、专家、学者和科技工作者参加了会议。华钜峰工程技术（上海）有限公司董事长杨一伟率队前往，与安徽工业大学冶金工程学院朱正海教授在会上碰面。两人就“新质生产力助推钢铁科技强国建设”展开了深入的讨论。</p>
+        <p>&emsp;&emsp;“协同”是贯穿大会的关键词，让此对产业发展的生态逻辑有了新理解。在交流过程中，提到的 “材料数字化建模是关键瓶颈”的论断与智能工业数据解析技术形成呼应，展现了高校科研与产业需求的精准对接。</p>
+        <p>&emsp;&emsp;走出会场，“科技强国”不再是宏大叙事，而是每个技术突破、每轮协同创新、每项绿色实践的叠加。华钜峰工程技术（上海）有限公司致力于在新质生产力助推产业升级的征程中“贡献一份力量，让“智能化转型”从概念落地为生产效率的提升。</p>
+      </div>
+      <div class="lg:w-1/2 relative">
+        <div style="text-align: center">
+          <img th:src="@{/img/huajufeng/news06.png}" class="w-full h-auto" style="width:550px; height:400px; display:block; margin:0 auto; border-radius: 20px;">
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 第七层 -->
+    <div class="flex flex-col lg:flex-row gap-12 items-center">
+      <div class="lg:w-1/2 relative">
+        <div style="text-align: center">
+          <img th:src="@{/img/huajufeng/news07.png}" class="w-full h-auto" style="width:550px; height:400px; display:block; margin:0 auto; border-radius: 20px;">
+        </div>
+      </div>
+      <div class="lg:w-1/2" style="margin-left: 10px">
+        <p>&emsp;&emsp;2025年11月27日华钜峰工程技术（上海）有限公司PLC技术组成员到迁安首钢讨论国产化改造事宜，现在国家大力推动关键核心技术自主可控，工业自动化装备国产化率提升成为重点。国际局势变化频繁，依赖进口PLC存在供货周期长，备件断供风险，钢铁企业面临降本增效需求。所以华钜峰在这些痛点处逐一攻破。</p>
+        <p>&emsp;&emsp;价格优势：同等配置下，国产PLC 硬件成本可降低，整体改造投入更可控。</p>
+        <p>&emsp;&emsp;供货与备件：国内生产与仓储，备件可早些到货，减少停机时间。</p>
+        <p>&emsp;&emsp;技术服务：原厂本地化技术团队，可现场快速响应调试与故障处理。</p>
+        <p>&emsp;&emsp;兼容扩展性：兼容原有模块、HMI 画面、通讯协议，降低改造风险。</p>
+        <p>&emsp;&emsp;安全与合规：通过 CE、SIL 等认证，满足钢铁行业安全标准</p>
+        <p>&emsp;&emsp;华钜峰秉承的核心宗旨是实现对现有系统的功能对等替代与无缝改造，提升钢铁厂设备运行稳定性与自主可控能力。</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white pt-16 pb-8">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+      <div class="yejiao1" style="border-right: 2px solid #ffffff;padding-right: 2.5rem; ">
+        <div class="flex items-center mb-6">
+          <div class="h-14 w-14 rounded-lg bg-dark flex items-center justify-center mr-3">
+            <img th:src="@{/img/huajufeng/a01.png}" style="width: 100px;height: 35px">
+          </div>
+        </div>
+        <p class="text-gray-400 mb-6">我们致力于为客户提供全方位的工程技术服务，从规划设计到实施落地，为您的项目保驾护航。</p>
+        <div class="flex space-x-4">
+          <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+            <i class="fa fa-weixin"></i>
+          </a>
+          <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+            <i class="fa fa-weibo"></i>
+          </a>
+          <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+            <i class="fa fa-linkedin"></i>
+          </a>
+          <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+            <i class="fa fa-youtube-play"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="other-company1 lg:ml-20">
+        <h4 class="text-lg font-semibold mb-6">华钜峰工程技术(河北)有限公司</h4>
+        <ul class="space-y-3">
+          <li class="flex items-start">
+            <i class="fa fa-map-marker text-primary mt-1 mr-3"></i>
+            <a href="http://api.map.baidu.com/geocoder?address=河北省唐山市迁安市燕山南路东燕钢丽景家园8号楼&output=html&src=webapp.baidu.openAPIdemo" target="_blank" class="text-gray-400 hover-underline">河北省唐山市迁安市燕山南路东燕钢丽景家园8号楼</a>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-admin text-primary mt-1 mr-3"></i>
+            <span class="text-gray-400">吴美岳</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-phone text-primary mt-1 mr-3"></i>
+            <span class="text-gray-400">15373572770</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-envelope text-primary mt-1 mr-3"></i>
+            <a href="mailto:hebei@huajufeng.com" class="text-gray-400 hover-underline">hebei@huajufeng.com</a>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-clock-o text-primary mt-1 mr-3"></i>
+            <span class="text-gray-400">周一至周五: 8:30 - 17:30</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="other-company2 lg:ml-20">
+        <h4 class="text-lg font-semibold mb-6">安徽华钜峰工程技术有限公司</h4>
+        <ul class="space-y-3">
+          <li class="flex items-start">
+            <i class="fa fa-map-marker text-primary mt-1 mr-3"></i>
+            <a href="http://api.map.baidu.com/geocoder?address=安徽省马鞍山市慈湖高新技术产业开发区慈湖街道金阳路335号7号楼&output=html&src=webapp.baidu.openAPIdemo"
+               target="_blank"
+               class="text-gray-400 hover-underline">安徽省马鞍山市慈湖高新技术产业开发区慈湖街道金阳路335号7号楼</a>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-admin text-primary mt-1 mr-3"></i>
+            <span class="text-gray-400">濮亮</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-phone text-primary mt-1 mr-3"></i>
+            <span class="text-gray-400">18755501922</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-envelope text-primary mt-1 mr-3"></i>
+            <a href="mailto:anhui@huajufeng.com" class="text-gray-400 hover-underline">anhui@huajufeng.com</a>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-clock-o text-primary mt-1 mr-3"></i>
+            <span class="text-gray-400">周一至周五: 8:30 - 17:30</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-800 pt-8">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <p class="text-gray-500 mb-4 md:mb-0">© 2025 华钜峰工程技术(上海)有限公司. 保留所有权利.</p>
+        <div class="flex space-x-6">
+          <a href="#" class="text-gray-500 hover:text-white transition-colors">隐私政策</a>
+          <a href="#" class="text-gray-500 hover:text-white transition-colors">服务条款</a>
+          <a href="#" class="text-gray-500 hover:text-white transition-colors">网站地图</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // 导航栏滚动效果
+  const navbar = document.getElementById('navbar');
+  const companyName = document.getElementById('company-name');
+  const backToTopBtn = document.getElementById('back-to-top');
+
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 50) {
+      navbar.classList.add('bg-[rgb(255,122,40)]', 'shadow-md');
+      navbar.classList.remove('bg-transparent', 'bg-gradient-blue');
+      companyName.classList.remove('text-white');
+      companyName.classList.add('text-primary');
+
+      // 更改导航链接颜色
+      const navLinks = navbar.querySelectorAll('nav a');
+      navLinks.forEach(link => {
+        link.classList.remove('text-white');
+        link.classList.add('text-gray-700');
+      });
+
+      // 更改移动端菜单按钮颜色
+      const menuToggle = document.getElementById('menu-toggle');
+      menuToggle.classList.remove('text-white');
+      menuToggle.classList.add('text-primary');
+    } else {
+      navbar.classList.remove('bg-white', 'shadow-md');
+      navbar.classList.add('bg-[rgb(255,122,40)]');
+      companyName.classList.add('text-white');
+      companyName.classList.remove('text-primary');
+
+      // 恢复导航链接颜色
+      const navLinks = navbar.querySelectorAll('nav a');
+      navLinks.forEach(link => {
+        link.classList.add('text-white');
+        link.classList.remove('text-gray-700');
+      });
+
+      // 恢复移动端菜单按钮颜色
+      const menuToggle = document.getElementById('menu-toggle');
+      menuToggle.classList.add('text-white');
+      menuToggle.classList.remove('text-primary');
+    }
+  });
+</script>
+</body>
+</html>

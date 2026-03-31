@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('差旅申请提交')"/>
+    <th:block th:include="include :: bootstrap-fileinput-css"/>
+    <th:block th:include="include :: select2-css"/>
+    <th:block th:include="include :: layout-latest-css" />
+    <th:block th:include="include :: ztree-css" />
+</head>
+</head>
+<body class="">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-outChild-submit">
+        <!-- 隐藏字段存储流程ID -->
+        <input type="hidden" name="id" th:value="${outChild.id}"/>
+        <input type="hidden" name="outId" th:value="${outChild.outId}">
+        <div class="form-group">
+            <label class="col-sm-3 control-label ">发起意见：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" name="initiateNote" id="initiateNote"></textarea>
+            </div>
+        </div>
+
+        <!--处理人选择框-->
+        <th:block th:include="include :: handlerInput" />
+
+        <!--<div class="form-group">
+            <label class="col-sm-3 control-label is-required">处理人部门：</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="handlePost" onchange="initHandleBy()">
+                    <option value="">请选择</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">指定处理人：</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="handleBy">
+                    <option value="">请选择</option>
+                </select>
+            </div>
+        </div>-->
+        <input type="hidden" name="fileNames">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-content">
+                        <div class="form-group">
+                            <label class="font-noraml">文件上传</label>
+                            <div class="file-loading">
+                                <input id="multipleFile" name="files" type="file" multiple>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: bootstrap-fileinput-js"/>
+<th:block th:include="include :: handlerInputJS" />
+<script type="text/javascript">
+    var prefix = ctx + "installation/travel-expenses";
+
+    formValidate("form-outChild-submit");
+
+    $(document).ready(function () {
+        // 多图上传
+        $("#multipleFile").fileinput({
+            uploadUrl: ctx + 'common/uploads',
+            uploadAsync: false
+        }).on('filebatchuploadsuccess', function (event, data, previewId, index) {
+            debugger;
+            var rsp = data.response;
+            $("input[name='fileNames']").val(rsp.fileNames.replaceAll("/profile/upload", ""));
+        }).on('fileremoved', function (event, id, index) {
+            $("input[name='" + event.currentTarget.id + "']").val('')
+        })
+
+        // 初始化部门下拉框
+        //initHandlePost();
+    });
+
+    //提交按钮功能,并自动刷新
+    function submitHandler() {
+        let serialize = $('#form-outChild-submit').serialize();
+        serialize.outId = $("input[name='outId']").val();
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/commit", serialize, function(result) {
+                if (result.code === web_status.SUCCESS) {
+                    top.$("iframe").each(function() {
+                        if (this.src.indexOf("travel-expenses/detail") > -1) {
+                            this.contentWindow.initDetailTable();
+                            return false;
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    /*// 填充处理人部门下拉框
+    function initHandlePost(){
+        $.ajax({
+            url: ctx + "system/post/post-list",
+            type: "post",
+            dataType: "json",
+            success: function(result) {
+                if (result.code == web_status.SUCCESS) {
+                    var data = result.rows;
+                    for (var i = 0; i < data.length; i++) {
+                        $("select[name='handlePost']").append(
+                            "<option value='" + data[i].postId + "'>" +  data[i].postName + "</option>"
+                        );
+                    }
+                }else {
+                    $.modal.msgWarning(result.msg);
+                }
+            }
+        })
+    }
+
+    // 填充处理人下拉框
+    function initHandleBy(){
+        $.ajax({
+            url: ctx + "system/post/user-list",
+            type: "post",
+            dataType: "json",
+            data: {
+                "postId": $("select[name='handlePost']").val(),
+            },
+            success: function(result) {
+                $("select[name='handleBy']").empty();
+                debugger
+                if (result.code == web_status.SUCCESS) {
+                    var data = result.rows;
+                    for (var i = 0; i < data.length; i++){
+                        $("select[name='handleBy']").append(
+                            "<option value='" + data[i].loginName + "'>" +  data[i].userName + "</option>"
+                        );
+                    }
+                }else {
+                    $.modal.msgWarning(result.msg);
+                }
+            }
+        })
+    }*/
+</script>
+</body>
+</html>

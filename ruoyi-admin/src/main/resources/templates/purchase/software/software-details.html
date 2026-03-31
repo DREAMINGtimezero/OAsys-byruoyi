@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+  <th:block th:include="include :: header('合同详情')" />
+  <th:block th:include="include :: datetimepicker-css" />
+  <style type="text/css">
+    table label.error{position: inherit;}select + label.error{z-index:1;right:40px;}
+  </style>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+
+  <form class="form-horizontal m" id="form-software-detail" th:object="${software}">
+
+    <h4 class="form-header h4">软件信息</h4>
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="form-group">
+          <label class="col-sm-3 control-label">软件编号：</label>
+          <div class="col-sm-9">
+            <input class="form-control" type="text" name="softwareCode" th:field="*{softwareCode}" readonly>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="form-group">
+          <label class="col-sm-3 control-label">软件名称：</label>
+          <div class="col-sm-9">
+            <input class="form-control" type="text" name="softwareName" th:field="*{softwareName}" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="form-group">
+          <label class="col-sm-3 control-label">描述：</label>
+          <div class="col-sm-9">
+            <textarea class="form-control" type="text" name="description" th:field="*{description}" readonly></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="form-group">
+          <label class="col-sm-3 control-label">所属项目：</label>
+          <div class="col-sm-9">
+            <input class="form-control" type="text" name="projectName" th:field="*{projectName}" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h4 class="form-header h4">软件处理流程</h4>
+    <div class="row">
+      <div class="col-sm-12">
+        <div th:if="${software.status != 3}">
+<!--          <shiro:hasPermission name="contract:process:add">-->
+            <button type="button" class="btn btn-white btn-sm" onclick="addRow()">
+              <i class="fa fa-plus"> 新增流程</i>
+            </button>
+<!--          </shiro:hasPermission>-->
+<!--          <shiro:hasPermission name="contract:process:edit">-->
+            <button type="button" class="btn btn-white btn-sm" onclick="handleFinish()">
+              <i class="fa fa-minus"> 结束流程</i>
+            </button>
+<!--          </shiro:hasPermission>-->
+        </div>
+        <div class="col-sm-12 select-table table-striped">
+          <table id="bootstrap-table"></table>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="row">
+  <div class="col-sm-offset-5 col-sm-10">
+    <!--    <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>保 存</button>&nbsp;-->
+    <button type="button" class="btn btn-sm btn-danger" onclick="closeCurrentPage()"><i class="fa fa-reply-all"></i>关 闭 </button>
+  </div>
+</div>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: datetimepicker-js" />
+<script th:src="@{/js/jquery.tmpl.js}"></script>
+<script th:inline="javascript">
+
+  // 文档就绪后初始化页面
+  $(function() {
+    var prefix = ctx + "purchase/software";
+
+    //Bootstrap Table 的配置对象，用于配置表格的行为和列定义。
+    var options = {
+      url: prefix + "/process-list",  // 使用后端接口获取数据
+      method: 'post',
+      uniqueId: 'id',           // 设置唯一标识字段
+      earch: false,                 // 禁用搜索框
+      showSearch: false,             // 禁用搜索按钮
+      showToggle: false,            // 禁用切换视图（列表/卡片）按钮
+      pagination: false,            //禁用分页
+      queryParams: function(params) {
+        return {
+          softwareId: [[${software.id}]]  // 传递ID
+        };
+      },
+
+      columns: [{
+        checkbox: true,  // 启用复选框
+      },
+        {
+          field: 'createBy',
+          align: 'center',
+          title: "发起人",
+        },
+        {
+          field: 'initiateNote',
+          align: 'center',
+          title: '发起意见',
+        },
+        {
+          field: 'initiateTime',
+          align: 'center',
+          title: '发起时间',
+          formatter: function(value, row, index) {
+            if (value) {
+              return $.common.dateFormat(value, "yyyy-MM-dd HH:mm:ss");
+            }
+            return "-";
+          }
+        },
+        {
+          field: 'handleBy',
+          align: 'center',
+          title: '指定处理人',
+        },
+        {
+          field: 'handleDept',
+          align: 'center',
+          title: '处理人部门',
+        },
+        {
+          field: 'handlePost',
+          align: 'center',
+          title: '处理人岗位',
+        },
+        {
+          field: 'handleNote',
+          align: 'center',
+          title: '处理意见',
+        },
+        {
+          field: 'handleTime',
+          align: 'center',
+          title: '处理时间',
+          formatter: function(value, row, index) {
+            if (value) {
+              return $.common.dateFormat(value, "yyyy-MM-dd HH:mm:ss");
+            }
+            return "-";
+          }
+        },
+        {
+          field: 'status',
+          title: '处理状态',
+          align: 'center',
+          formatter: function(value, row, index) {
+            if (value == 1) {
+              return '<span class="badge badge-danger">未提交</span>';
+            } else if (value == 2) {
+              return '<span class="badge badge-warning">待处理</span>';
+            } else if (value == 3) {
+              return '<span class="badge badge-primary">已通过</span>';
+            } else if (value == 4) {
+              return '<span class="badge badge-default">已驳回</span>';
+            }
+            return '<span class="badge badge-default">未知</span>';
+          }
+        },
+        {
+          title: '文件',
+          align: 'center',
+          formatter: function(value, row, index) {
+            var actions = [];
+            // 检查是否有文件数据，使用 row.fileNames 字段
+            if ($.common.isNotEmpty(row.fileNames) && row.fileNames.trim() !== '') {
+              actions.push('<a class="btn btn-file" onclick="$.table.fileView(\'' + row.fileNames + '\')" title="文件预览"><i class="fa fa-folder-open"></i>预览</a> ');
+              actions.push('<a class="btn btn-file" onclick="$.table.fileDownload(\'' + row.fileNames + '\')" title="文件下载"><i class="fa fa-download"></i>下载</a>');
+            } else {
+              actions.push('<span class="text-muted">无文件</span>');
+            }
+            return actions.join('');
+          }
+        },
+        {
+          title: '操作',
+          align: 'center',
+          formatter: function(value, row, index) {
+            var actions = [];
+            if (row.status == 1) { // 未提交状态
+              actions.push('<a class="btn btn-primary btn-xs" onclick="initiateProcess(\'' + row.id + '\')" title="发起"><i class="fa fa-paper-plane"></i>发起</a>');
+            } else if (row.status == 2) { // 待处理状态
+              actions.push('<a class="btn btn-success btn-xs" onclick="handleProcess(\'' + row.id + '\')" title="处理"><i class="fa fa-check"></i>处理</a>');
+              // actions.push('<a class="btn btn-success btn-xs" onclick="handleFinish(\'' + row.id + '\')" title="通过"><i class="fa fa-check"></i></a>');
+            }
+            return actions.join(''); // 返回按钮HTML字符串
+          }
+        }]
+    };
+    $.table.init(options);
+  });
+
+  /* 关闭当前页 */
+  function closeCurrentPage() {
+    var index = parent.layer.getFrameIndex(window.name);
+    parent.layer.close(index); // 关闭当前页
+  }
+
+  /* 详情页子表-新增 */
+  function addRow() {
+    var prefix = ctx + "purchase/software";
+    var softwareId = [[${software.id}]];  // 直接获取主键ID
+
+    // 添加确认对话框
+    $.modal.confirm("确认要新增流程吗?", function() {
+      // 准备新增数据
+      var data = {
+        softwareId: softwareId,
+        status: 1,  // 初始状态：未提交
+        createBy: "",  // 后端会自动填充当前用户
+        initiateNote: "",
+        handleBy: ""
+      };
+      $.ajax({
+        url: prefix + "/process-add",  // 你的新增接口地址
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(data),
+        success: function(result) {
+          if (result.code == web_status.SUCCESS) {
+            $.modal.msgSuccess("新增成功");
+            $.table.refresh();  // 刷新表格数据
+          } else {
+            $.modal.msgError(result.msg);
+          }
+        }
+      });
+    });
+  }
+
+  /* 结束合同流程 */
+  function handleFinish() {
+    var softwareId = [[${software.id}]];  // 从Thymeleaf模板获取合同ID
+
+    $.modal.confirm("确认要结束该流程吗?", function() {
+      var data = {
+        "id": softwareId,  // 软件主键
+        "status": 3       // 状态改为3-已结束
+      };
+
+      var prefix = ctx + "purchase/software";
+      $.ajax({
+        url: prefix + "/process-finish",
+        type: "POST",
+        data: data,
+        success: function(result) {
+          if (result.code == web_status.SUCCESS) {
+            $.modal.msgSuccess("操作成功");
+            closeCurrentPage();// 关闭当前页面
+            window.parent.location.reload();
+          } else {
+            $.modal.msgError(result.msg);
+          }
+        }
+      });
+    });
+  }
+
+  /* 发起流程页面 */
+  function initiateProcess(id) {
+    var prefix = ctx + "purchase/software";
+    var url = prefix + '/process-initiate/' + id; // 拼接发起流程的URL
+    $.modal.open("发起流程", url);
+  }
+
+  /* 处理流程页面 */
+  function handleProcess(id) {
+    var prefix = ctx + "purchase/software";
+    var url = prefix + '/process-handle/' + id; // 拼接处理流程的URL
+    $.modal.open("处理流程", url);
+  }
+
+  /* 文件下载 */
+  function handleDownload(id) {
+    var prefix = ctx + "purchase/software";
+    // 先获取该流程的文件信息
+    $.ajax({
+      url: prefix + "/process-files/" + id,
+      type: "GET",
+      success: function(result) {
+        if (result.code == 0 && result.msg) {
+          var fileNames = result.msg;  // 文件路径在msg字段中
+          if (fileNames) {
+            window.location.href = ctx + "common/batchDownload?fileName=" + encodeURI(fileNames);
+          } else {
+            $.modal.msgWarning("该流程暂无文件");
+          }
+        } else {
+          $.modal.msgError("获取文件信息失败");
+        }
+      }
+    });
+  }
+
+  /* 刷新子表 */
+  function initDetailTable() {
+    $('#bootstrap-table').bootstrapTable('refresh')
+  }
+
+
+</script>
+</body>
+</html>

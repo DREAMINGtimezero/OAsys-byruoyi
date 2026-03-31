@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.w3.org/1999/xhtml">
+<head>
+    <th:block th:include="include :: header('客户列表')"/>
+    <th:block th:include="include :: bootstrap-select-css"/>
+    <style>
+        .select-list ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .select-list li {
+            display: flex;
+            align-items: center;
+        }
+
+        .select-list label {
+            min-width: 100px;
+        }
+
+        .status-select {
+            width: auto;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot-undeveloped {
+            background-color: lightgrey;
+        }
+
+        .dot-developing {
+            background-color: orange;
+        }
+
+        .dot-finished {
+            background-color: lightgreen;
+        }
+
+        .dot-fail {
+            background-color: red;
+        }
+
+    </style>
+</head>
+<body class="dark-blue">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="searchForm">
+                <div class="select-list">
+                    <input type="hidden" name="isCeo" th:value="${isCeo}"  />
+                    <ul>
+                        <li style="display: flex; gap: 20px; align-items: center;">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <label style="min-width: 100px;">客户名称：</label>
+                                <input type="text" name="customerName" style="flex: 1;"/>
+                            </div>
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <label style="min-width: 100px;">资方：</label>
+                                <input type="text" name="capital" style="flex: 1;"/>
+                            </div>
+                        </li>
+                        <li>
+                            <label>来源：</label>
+                            <select name="dataSource">
+                                <option value="">所有</option>
+                                <option value="1">公司网页</option>
+                                <option value="2">系统新增</option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>状态：</label>
+                            <select name="devStatus">
+                                <option value="">所有</option>
+                                <option value="1">未开发</option>
+                                <option value="2">开发中</option>
+                                <option value="3">失败</option>
+                                <option value="4">成功</option>
+                            </select>
+                        </li>
+                        <li class="select-time">
+                            <label>创建时间： </label>
+                            <input type="text" class="time-input" id="startTime" placeholder="开始时间"
+                                   name="params[beginTime]"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" id="endTime" placeholder="结束时间"
+                                   name="params[endTime]"/>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
+                                    class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
+                                    class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()">
+                <i class="fa fa-plus"></i> 新增
+            </a>
+            <a class="btn btn-primary single disabled" onclick="$.operate.edit()">
+                <i class="fa fa-edit"></i> 修改
+            </a>
+            <!-- <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()">
+                 <i class="fa fa-remove"></i> 删除
+             </a>-->
+            <a class="btn btn-warning" onclick="$.table.exportExcel()">
+                <i class="fa fa-download"></i> 导出
+            </a>
+        </div>
+
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: bootstrap-select-js"/>
+<script th:src="@{/js/axios.min.js}"></script>
+<script th:src="@{/js/plugins/decimal/decimal.js}"></script>
+<script th:inline="javascript">
+
+    let prefix = ctx + "customer/dev/customer";
+    let prefix1 = ctx + "customer/dev/sub";
+    const status = /*[[${status}]]*/undefined;
+    const devStatusManage = {
+        "未开发": 1,
+        "开发中": 2,
+        "已失败": 3,
+        "已完成": 4
+    }
+    $(function () {
+        if ($.common.isNotEmpty(status)) {
+            $("select[name='status']").val(status);
+        }
+        var options = {
+            url: prefix + "/list",
+            createUrl: prefix + "/add",
+            cleanUrl: prefix + "/clean",
+            detailUrl: prefix1 + "/detail/{id}",
+            removeUrl: prefix + "/remove",
+            exportUrl: prefix + "/export",
+            updateUrl: prefix + "/edit/{id}",
+            modalName: "客户",
+            //detailView: true,
+            columns: [{
+                checkbox: true
+            },
+                {
+                    field: 'id',
+                    title: '主键',
+                    visible: false
+                },
+                {
+                    field: 'customerName',    // 对应 customer_name
+                    title: '客户名称',
+                    align: 'center'
+                },
+                {
+                    field: 'phone',  // 对应 phone
+                    title: '手机号',
+                    align: 'center'
+                },
+                {
+                    field: 'wechat',   // 对应 wechat
+                    title: '微信',
+                    align: 'center'
+                },
+                {
+                    field: 'email',   // 对应 email
+                    title: '邮箱',
+                    align: 'center'
+                },
+                {
+                    field: 'channel',   // 对应 channel
+                    title: '渠道',
+                    align: 'center'
+                },
+                {
+                    field: 'capital',   // 对应 capital
+                    title: '资方',
+                    align: 'center'
+                },
+                {
+                    field: 'mode',   // 对应 mode
+                    title: '性质',
+                    align: 'center'
+                },
+                {
+                    field: 'progress',
+                    title: '最新进展',
+                    align: 'center',
+                },
+                {
+                    field: 'createBy',      // 对应 create_by
+                    title: '创建人',
+                    align: 'center'
+                },
+                {
+                    field: 'createTime',    // 对应 create_time
+                    title: '创建时间',
+                    align: 'center',
+                    visible: false
+                },
+                {
+                    field: 'dataSource',
+                    title: '来源',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-primary">公司网页</span>';
+                        } else if (value == 2) {
+                            return '<span class="badge badge-success">系统新增</span>';
+                        }
+                        return '<span class="badge badge-default">未知</span>';
+                    }
+                },
+                {
+                    field: 'devStatus',
+                    title: '状态',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        let html = `<select class="form-control status-select" data-id="` + row.id + `" data-original-value="${value}">`;
+                        html += '<option value=1' + (value === "1" ? ' selected' : '') + `>未开发</option>`;
+                        html += '<option value=2' + (value === "2" ? ' selected' : '') + `>开发中</option>`;
+                        html += '<option value=3' + (value === "3" ? ' selected' : '') + `>已失败</option>`;
+                        html += '<option value=4' + (value === "4" ? ' selected' : '') + `>已完成</option>`;
+                        html += '</select>';
+                        let dotClass = "dot ";
+                        switch (value) {
+                            case "1":
+                                dotClass += 'dot-undeveloped';
+                                break;
+                            case "2":
+                                dotClass += 'dot-developing';
+                                break;
+                            case "3":
+                                dotClass += 'dot-fail';
+                                break;
+                            case "4":
+                                dotClass += 'dot-finished';
+                                break;
+                        }
+                        html = `<span style="display: flex; align-items: center; gap: 5px;"><span class="${dotClass}"></span>${html}</span>`
+                        return html;
+                    }
+                },
+                {
+                    title: '详情',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-info btn-xs" onclick="detail(\'' + row.id + '\')" title="客户详情"><i class="fa fa-file-text-o"></i>详情</a>');
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+    $('.status-select').selectpicker();
+    $(document).on('change', '.status-select', function () {
+        let id = $(this).data('id');          // 获取当前行 id
+        let status = Number($(this).val());           // 获取选中的状态
+        let originalValue = $(this).data('original-value'); // 获取原始值
+        const element = $(this);
+        // 如果原值为（已完成），则不允许修改
+        if (originalValue === devStatusManage['已完成']) {
+            $.modal.msgWarning('客户开发已经完成，不可再更改');
+            // 恢复原来的值
+            $(this).val(originalValue);
+            return;
+        }
+        // 确定调用
+        let changeStatus = () => {
+            $.ajax({
+                url: prefix + '/devStatus',
+                type: 'put',
+                dataType: 'json',
+                data:{
+                    id:id,
+                    devStatus:status
+                },
+                success: function (res) {
+                    if (res.code == 0) {
+                        $.modal.msgSuccess("状态更新成功！");
+                        element.data('original-value', status);
+                    } else {
+                        $.modal.msgError("更新失败：" + res.msg);
+                        element.val(originalValue);
+                    }
+                    // 刷新表格数据
+                    $.table.refresh();
+                },
+                error: function () {
+                    $.modal.msgError("网络错误，更新失败");
+                    element.val(originalValue);
+                    // 刷新表格数据
+                    $.table.refresh();
+                }
+            });
+        };
+        // 取消调用
+        let cancelFunc = () => {
+            element.val(originalValue);
+            // 刷新表格数据
+            $.table.refresh();
+        };
+        if (status === devStatusManage['已完成']) {
+            let result = window.confirm("确定要将开发状态设置为已完成吗？");
+            $.modal.confirm()
+            if (result) {
+                changeStatus();
+            } else {
+                cancelFunc();
+            }
+        } else {
+            changeStatus();
+        }
+
+    });
+
+    /**
+     * 客户详情
+     */
+    function detail(id) {
+        table.set();
+        console.log(id); // 确认每行id
+        $.modal.popupRight('客户详情', prefix1 + '/detail/' + id)
+    }
+</script>
+</body>
+
+</html>

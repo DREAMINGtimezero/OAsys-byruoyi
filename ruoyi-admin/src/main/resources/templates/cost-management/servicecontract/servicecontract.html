@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <th:block th:include="include :: header('服务合同列表')" />
+    <th:block th:include="include :: bootstrap-select-css" />
+    <style>
+        .select-list ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-left: 0;
+            list-style: none;
+        }
+        .select-list li {
+            display: flex;
+            align-items: center;
+        }
+        .select-list label {
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body class="dark-blue">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="searchForm">
+                <div class="select-list">
+                    <ul>
+                        <li style="display: flex; gap: 20px; align-items: center;">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <label style="min-width: 100px;">服务合同编号：</label>
+                                <input type="text" name="serviceContractId" style="flex: 1;" />
+                            </div>
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <label style="min-width: 100px;">服务合同名称：</label>
+                                <input type="text" name="serviceContractName" style="flex: 1;" />
+                            </div>
+                        </li>
+                        <li>
+                            <label>状态：</label>
+                            <select name="status">
+                                <option value="">所有</option>
+                                <option value="1">未提交</option>
+                                <option value="2">处理中</option>
+                                <option value="3">已完成</option>
+                            </select>
+                        </li>
+                        <li class="select-time">
+                            <label>创建时间： </label>
+                            <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginTime]"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endTime]"/>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()">
+                <i class="fa fa-plus"></i> 新增
+            </a>
+            <a class="btn btn-primary single disabled" onclick="$.operate.edit()">
+                <i class="fa fa-edit"></i> 修改
+            </a>
+            <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()">
+                <i class="fa fa-remove"></i> 删除
+            </a>
+        </div>
+
+    <div class="col-sm-12 select-table table-striped">
+        <table id="bootstrap-table"></table>
+    </div>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: bootstrap-select-js"/>
+<script th:src="@{/js/axios.min.js}"></script>
+<script th:src="@{/js/plugins/decimal/decimal.js}"></script>
+<script th:inline="javascript">
+
+    let prefix = ctx + "cost-management/servicecontract";
+    const status = /*[[${status}]]*/undefined;
+    $(function() {
+        if ($.common.isNotEmpty(status) ) {
+            $("select[name='status']").val(status);
+        }
+        var options = {
+            url: prefix+ "/list",
+            createUrl: prefix + "/add",
+            cleanUrl: prefix + "/clean",
+            detailUrl: prefix + "/detail/{id}",
+            removeUrl: prefix + "/remove",
+            exportUrl: prefix + "/export",
+            updateUrl: prefix + "/edit/{id}",
+            modalName: "服务合同",
+            detailView: true,
+
+            onExpandRow : function(index, row, $detail) {
+                initChildTable(index, row, $detail);
+            },
+
+            columns: [{
+                checkbox: true
+            },
+                {
+                    field: 'id',
+                    title: '主键',
+                    visible: false
+                },
+                {
+                    field: 'serviceContractId',    // 对应 service_contract_id
+                    title: '服务合同编号',
+                    align: 'center'
+                },
+                {
+                    field: 'serviceContractName',  // 对应 service_contract_name
+                    title: '服务合同名称',
+                    align: 'center'
+                },
+                {
+                    field: 'serviceAmount',   // 对应 service_amount
+                    title: '金额',
+                    align: 'center'
+                },
+                {
+                    field: 'description',   // 对应 description
+                    title: '描述信息',
+                    align: 'center'
+                },
+                {
+                    field: 'createBy',      // 对应 create_by
+                    title: '创建人',
+                    align: 'center'
+                },
+                {
+                    field: 'createTime',    // 对应 create_time
+                    title: '创建时间',
+                    align: 'center'
+                },
+                {
+                    field: 'note',         // 对应 note
+                    title: '备注'
+                },
+                {
+                    field: 'updateBy',
+                    title: '最后操作人',
+                    align: 'center'
+                },
+                {
+                    field: 'status',
+                    title: '状态',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';
+                        } else if (value == 2) {
+                            return '<span class="badge badge-warning">处理中</span>';
+                        }else if (value == 3) {
+                            return '<span class="badge badge-success">已完成</span>';
+                        }
+                        return '<span class="badge badge-default">未知</span>';
+                    }
+                },
+                {
+                    title: '详情',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-info btn-xs" onclick="detail(\''+ row.id + '\')" title="合同详情"><i class="fa fa-file-text-o"></i>详情</a>');
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+    initChildTable = function(index, row, $detail) {
+        var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+        $(childTable).bootstrapTable({
+            url: prefix + "/process-service-list",
+            method: 'post',
+            sidePagination: "server",
+            contentType: "application/x-www-form-urlencoded",
+            queryParams: function(params) {    // 添加查询参数
+                var queryParams = {
+                    pageSize: params.limit,
+                    pageNum: params.offset / params.limit + 1,
+                    ServiceContractId: row.id  // 传递主表合同ID
+                };
+                return queryParams;
+            },
+            columns: [
+                {
+                    field : 'createBy',
+                    title : '发起人',
+                    align: 'center'
+                },
+                {
+                    field : 'createDept',
+                    title : '发起人所属部门',
+                    align: 'center'
+                },
+                {
+                    field : 'createPost',
+                    title : '发起人所属岗位',
+                    align: 'center'
+                },
+                {
+                    field : 'initiateNote',
+                    title : '发起意见',
+                    align: 'center'
+                },
+                {
+                    field : 'initiateTime',
+                    title : '发起时间',
+                    align: 'center'
+                },
+                {
+                    field : 'handleBy',
+                    title : '指定处理人',
+                    align: 'center'
+                },
+                {
+                    field : 'handleDept',
+                    title : '处理人所属部门',
+                    align: 'center'
+                },
+                {
+                    field : 'handlePost',
+                    title : '处理人所属岗位',
+                    align: 'center'
+                },
+                {
+                    field : 'handleNote',
+                    title : '处理意见',
+                    align: 'center'
+                },
+                {
+                    field : 'handleTime',
+                    title : '处理时间',
+                    align: 'center'
+                },
+                {
+                    field: 'status',
+                    title: '处理状态',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';
+                        } else if (value == 2) {
+                            return '<span class="badge badge-warning">待处理</span>';
+                        } else if (value == 3) {
+                            return '<span class="badge badge-success">已处理</span>';
+                        } else if (value == 4) {
+                            return '<span class="badge badge-default">已驳回</span>';
+                        }
+                        return '<span class="badge badge-default">未知</span>';
+                    }
+                }]
+        });
+    };
+
+    function detail(id) {
+        table.set();
+        $.modal.popupRight('服务合同详情', prefix + '/details/' + id)
+    }
+</script>
+</body>
+
+</html>

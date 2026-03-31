@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.officesupplies.mapper.OfficeSuppliesMapper">
+
+    <resultMap type="OfficeSupplies" id="OfficeSuppliesResult">
+        <result property="suppliesName"    column="supplies_name"    />
+        <result property="unitPrice"    column="unit_price"    />
+        <result property="quantity"    column="quantity"    />
+        <result property="totalCost"    column="total_cost"    />
+        <result property="description"    column="description"    />
+        <result property="status"    column="status"    />
+        <result property="id"    column="id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <resultMap type="OfficeSuppliesSub" id="OfficeSuppliesSubResult">
+        <result property="officeSuppliesId"    column="office_supplies_id"    />
+        <result property="initiateNote"    column="initiate_note"    />
+        <result property="initiateTime"    column="initiate_time"    />
+        <result property="handleBy"    column="handle_by"    />
+        <result property="handleNote"    column="handle_note"    />
+        <result property="handleTime"    column="handle_time"    />
+        <result property="fileNames"    column="file_names"    />
+        <result property="status"    column="status"    />
+        <result property="id"    column="id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="deleteFlag"    column="delete_flag"    />
+    </resultMap>
+
+    <sql id="selectOfficeSuppliesVo">
+        select supplies_name, unit_price, quantity, total_cost, description, status, id, create_by, update_by, create_time, update_time, delete_flag from t_office_supplies
+    </sql>
+
+    <sql id="selectOfficeSuppliesSubVo">
+        select office_supplies_id, initiate_note, initiate_time, handle_by, handle_note, handle_time, file_names, status, id, create_by, update_by, create_time, update_time, delete_flag from t_office_supplies_sub
+    </sql>
+
+    <select id="selectOfficeSuppliesList" parameterType="OfficeSupplies" resultMap="OfficeSuppliesResult">
+        <include refid="selectOfficeSuppliesVo"/>
+
+        <where>
+            <if test="createBy != null  and createBy != ''">
+                EXISTS (
+                SELECT 1 FROM t_office_supplies_sub tos  WHERE  t_office_supplies.id = tos.office_supplies_id
+                and tos.delete_flag = 0 and (tos.create_by = #{createBy} OR tos.handle_by = #{createBy})
+                )
+            </if>
+            and t_office_supplies.delete_flag = 0
+            <if test="suppliesName != null  and suppliesName != ''"> and supplies_name like concat('%', #{suppliesName}, '%')</if>
+            <if test="unitPrice != null and unitPrice != ''"> and unit_price = #{unitPrice}</if>
+            <if test="quantity != null and quantity != ''"> and quantity = #{quantity}</if>
+            <if test="totalCost != null and totalCost != ''"> and total_cost = #{totalCost}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="params.startTime != null and params.startTime != ''"> and create_time >= #{params.startTime}</if>
+            <if test="params.endTime != null and params.endTime != ''"> and create_time &lt;= #{params.endTime}</if>
+        </where>
+    </select>
+
+    <select id="selectOfficeSuppliesById" parameterType="Long" resultMap="OfficeSuppliesResult">
+        <include refid="selectOfficeSuppliesVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectOfficeSuppliesByIds" parameterType="java.util.List" resultMap="OfficeSuppliesResult">
+        <include refid="selectOfficeSuppliesVo"/>
+        where id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="insertOfficeSupplies" parameterType="OfficeSupplies" useGeneratedKeys="true" keyProperty="id">
+        insert into t_office_supplies
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="suppliesName != null and suppliesName != ''">supplies_name,</if>
+            <if test="unitPrice != null and unitPrice != ''">unit_price,</if>
+            <if test="quantity != null and quantity != ''">quantity,</if>
+            <if test="totalCost != null and totalCost != ''">total_cost,</if>
+            <if test="description != null ">description,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="suppliesName != null and suppliesName != ''">#{suppliesName},</if>
+            <if test="unitPrice != null and unitPrice != ''">#{unitPrice},</if>
+            <if test="quantity != null and quantity != ''">#{quantity},</if>
+            <if test="totalCost != null and totalCost != ''">#{totalCost},</if>
+            <if test="description != null">#{description},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateOfficeSupplies" parameterType="OfficeSupplies">
+        update t_office_supplies
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="suppliesName != null and suppliesName != ''">supplies_name = #{suppliesName},</if>
+            <if test="unitPrice != null and unitPrice != ''">unit_price = #{unitPrice},</if>
+            <if test="quantity != null and quantity != ''">quantity = #{quantity},</if>
+            <if test="totalCost != null and totalCost != ''">total_cost = #{totalCost},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteOfficeSuppliesById" parameterType="Long">
+        update t_office_supplies set delete_flag = 1,update_time = sysdate()
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteOfficeSuppliesByIds" parameterType="String">
+        update t_office_supplies set delete_flag = 1,update_time = sysdate()
+        where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteOfficeSuppliesSubByIds" parameterType="String">
+        update t_office_supplies_sub set delete_flag = 1,update_time = sysdate()
+        where office_supplies_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach> and delete_flag = 0
+    </delete>
+
+<!--以下是子表的xml-->
+
+    <select id="selectOfficeSuppliesSubList" parameterType="OfficeSuppliesSub" resultMap="OfficeSuppliesSubResult">
+        <include refid="selectOfficeSuppliesSubVo"/>
+        <where>
+            delete_flag = '0'
+            <if test="officeSuppliesId != null "> and office_supplies_id = #{officeSuppliesId}</if>
+            <if test="initiateNote != null  and initiateNote != ''"> and initiate_note = #{initiateNote}</if>
+            <if test="initiateTime != null "> and initiate_time = #{initiateTime}</if>
+            <if test="handleBy != null  and handleBy != ''"> and handle_by = #{handleBy}</if>
+            <if test="handleNote != null  and handleNote != ''"> and handle_note = #{handleNote}</if>
+            <if test="handleTime != null "> and handle_time = #{handleTime}</if>
+            <if test="fileNames != null  and fileNames != ''"> and file_names = #{fileNames}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="deleteFlag != null "> and delete_flag = #{deleteFlag}</if>
+        </where>
+    </select>
+
+    <select id="selectOfficeSuppliesSubById" parameterType="Long" resultMap="OfficeSuppliesSubResult">
+        <include refid="selectOfficeSuppliesSubVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertOfficeSuppliesSub" parameterType="OfficeSuppliesSub" useGeneratedKeys="true" keyProperty="id">
+        insert into t_office_supplies_sub
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="officeSuppliesId != null">office_supplies_id,</if>
+            <if test="initiateNote != null">initiate_note,</if>
+            <if test="initiateTime != null">initiate_time,</if>
+            <if test="handleBy != null">handle_by,</if>
+            <if test="handleNote != null">handle_note,</if>
+            <if test="handleTime != null">handle_time,</if>
+            <if test="fileNames != null">file_names,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="officeSuppliesId != null">#{officeSuppliesId},</if>
+            <if test="initiateNote != null">#{initiateNote},</if>
+            <if test="initiateTime != null">#{initiateTime},</if>
+            <if test="handleBy != null">#{handleBy},</if>
+            <if test="handleNote != null">#{handleNote},</if>
+            <if test="handleTime != null">#{handleTime},</if>
+            <if test="fileNames != null">#{fileNames},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateOfficeSuppliesSub" parameterType="OfficeSuppliesSub">
+        update t_office_supplies_sub
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="officeSuppliesId != null">office_supplies_id = #{officeSuppliesId},</if>
+            <if test="initiateNote != null">initiate_note = #{initiateNote},</if>
+            <if test="initiateTime != null">initiate_time = #{initiateTime},</if>
+            <if test="handleBy != null">handle_by = #{handleBy},</if>
+            <if test="handleNote != null">handle_note = #{handleNote},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+            <if test="fileNames != null and fileNames != ''">file_names = #{fileNames},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteOfficeSuppliesSubById" parameterType="Long">
+        update t_office_supplies_sub set delete_flag = 1,update_time = sysdate()
+        where id = #{id}
+    </delete>
+
+
+</mapper>

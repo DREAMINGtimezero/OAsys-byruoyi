@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术服务</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script th:inline="javascript"> var ctx = [[@{/}]]; var lockscreen = [[${session.lockscreen}]]; if(lockscreen){window.top.location=ctx+"lockscreen";} </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0A2463',
+                        accent: '#3E92CC',
+                        dark: '#121212',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .text-shadow-lg {
+                text-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+            }
+            .bg-gradient-blue {
+                background: linear-gradient(135deg, #A4d3ee 0%, #A4d3ee 100%);
+            }
+            .clip-path-slant {
+                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            }
+        }
+        .fa-admin:before{
+            content: "\f007";
+        }
+        .other-company1{
+            height: 220px;
+            width: 450px;
+            margin: 0 auto;
+        }
+        .other-company2{
+            height: 220px;
+            width: 415px;
+            margin: 0 auto;
+        }
+        .pt-16{
+            padding-top: 2rem;
+        }
+        .hover-underline {
+            position: relative;
+            display: inline-block;
+        }
+
+        .hover-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: #ffffffcc;
+            transition: width 0.4s ease-in-out;
+        }
+
+        .hover-underline:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="font-inter bg-light text-dark antialiased">
+<!-- 导航栏 -->
+<header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300  " style="background: linear-gradient(135deg, rgb(186 57 27) 0%, #000000 100%);" >
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center">
+                <div>
+                    <img th:src="@{/img/huajufeng/a01.png}" style="width: 90px;height: 50px;left: -10px;position: relative;">
+                </div>
+            </div>
+
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex space-x-8">
+                <a th:href="@{../}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">首页</a>
+                <a th:href="@{overview}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">产品概览</a>
+                <a th:href="@{service}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">技术服务</a>
+                <a th:href="@{cases}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">成功案例</a>
+                <a th:href="@{honor}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">资质荣誉</a>
+                <a th:href="@{news}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">新闻中心</a>
+                <a th:href="@{../#contact}" target="_parent" class="text-white hover:text-primary/80 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-[rgb(208,60,60)] transition-colors" style="color: #FFFFFF">联系我们</a>
+            </nav>
+            <!-- 移动端菜单按钮 -->
+            <button id="menu-toggle" class="md:hidden text-white focus:outline-none">
+                <i class="fa fa-bars text-2xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 移动端导航菜单 -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+        <div class="px-4 py-3 space-y-3">
+            <a th:href="@{../}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">首页</a>
+            <a th:href="@{overview}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">产品概览</a>
+            <a th:href="@{service}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">技术服务</a>
+            <a th:href="@{cases}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">成功案例</a>
+            <a th:href="@{honor}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">资质荣誉</a>
+            <a th:href="@{news}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">新闻中心</a>
+            <a th:href="@{../#contact}" class="block py-2 text-primary hover:bg-primary/10 px-3 rounded-md transition-colors" style="color: #0a2730">联系我们</a>
+        </div>
+    </div>
+</header>
+<!-- 关于我们 -->
+<section id="about" class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 flex items-center justify-center">
+            <div class="flex-grow h-0.5 bg-[rgb(0,0,4)]"></div>
+            <h2 class="text-[clamp(1.2rem,3vw,2rem)] font-bold text-dark mb-0 px-4"><span class="text-primary" style="color: #000000">技术服务</span></h2>
+            <div class="flex-grow h-0.5 bg-[rgb(0,0,0)]"></div>
+        </div>
+
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- 1 技术服务 -->
+            <div class="project-item engineering bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 group" data-category="engineering">
+                <!-- 封面图 -->
+                <div class="h-48 overflow-hidden">
+                    <img th:src="@{/img/huajufeng/a31.jpg}" alt="工程技术服务"
+                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <!-- 内容 -->
+                <div class="p-6">
+                    <!-- 模块头 -->
+                    <div class="flex items-center mb-4">
+                        <h3 class="text-2xl font-bold text-dark">数字化出铁沟系统</h3>
+                    </div>
+                    <!-- 描述 -->
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        &emsp;&emsp;通过物理仿真、AI大数据分析和耐高温热电偶监测，构建数字化出铁沟解决方案，实现温度实时采集、工作层侵蚀动态监测及异常预警，防止穿孔损坏钢槽结构。
+                    </p>
+
+                    <!-- 优势模块 -->
+                    <h4 class="text-lg font-semibold text-dark mb-3">核心优势</h4>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                永久层寿命延长至 10 年（传统仅 3 年），大幅减少更换费用，降低企业运营成本。
+                            </p>
+                        </li>
+                        <li class="flex text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                通铁量提升 10% 以上，单次通铁周期成功延长至 65 天，有效提高生产效率。
+                            </p>
+                        </li>
+                        <li class="flex text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                实现“零穿沟事故”，全面达成炉前主沟的数字化与智能化管理，提升安全保障水平。
+                            </p>
+                        </li>
+                    </ul>
+
+                    <!-- CTA 按钮 -->
+
+                </div>
+            </div>
+            <!-- 2 技术服务 -->
+            <div class="project-item engineering bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 group" data-category="engineering">
+                <!-- 封面图 -->
+                <div class="h-48 overflow-hidden">
+                    <img th:src="@{/img/huajufeng/a32.png}" alt="工业工程设计"
+                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                </div>
+
+                <!-- 内容 -->
+                <div class="p-6">
+                    <!-- 模块头 -->
+                    <div class="flex items-center mb-4">
+                        <h3 class="text-2xl font-bold text-dark">工程技术服务</h3>
+                    </div>
+
+                    <!-- 描述 -->
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        &emsp;&emsp;覆盖工业项目全生命周期，提供从前期规划到后期运维的一站式技术支撑，有效解决企业生产流程中的效率与安全痛点问题。
+                    </p>
+
+                    <!-- 优势模块 -->
+                    <h4 class="text-lg font-semibold text-dark mb-3">服务内容</h4>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-start text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                工程咨询：结合行业政策与企业需求，提供项目可行性分析、技术路线规划
+                            </p>
+                        </li>
+                        <li class="flex items-start text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                工程设计：针对冶金、能源领域，优化设备布局与工艺参数，提升生产效能
+                            </p>
+                        </li>
+                        <li class="flex items-start text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                工程监理：全程监控项目实施，保障施工质量与安全，确保项目按计划落地
+                            </p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- 3 技术服务 -->
+            <div class="project-item engineering bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 group" data-category="engineering">
+                <!-- 封面图 -->
+                <div class="h-48 overflow-hidden">
+                    <img th:src="@{/img/huajufeng/a33.png}" alt="工程管理服务"
+                         class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
+                </div>
+
+                <!-- 内容 -->
+                <div class="p-6">
+                    <!-- 模块头 -->
+                    <div class="flex items-center mb-4">
+                        <h3 class="text-2xl font-bold text-dark">工业物联网与智能监控</h3>
+                    </div>
+                    <!-- 描述 -->
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        &emsp;&emsp;依托工业物联网技术，链接现场传感设备与云端数据平台，实现生产数据实时采集、分析与可视化管理，助力企业降本增效、绿色生产。
+                    </p>
+
+                    <!-- 优势模块 -->
+                    <h4 class="text-lg font-semibold text-dark mb-3">核心能力</h4>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-start text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                实时监控系统：实时传输热电偶温度、设备运行状态等数据，异常情况自动报警
+                            </p>
+                        </li>
+                        <li class="flex items-start text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                数据存储与分析：搭建硬盘数据库与 IPC 工控机系统，沉淀生产数据并生成优化建议
+                            </p>
+                        </li>
+                        <li class="flex items-start text-gray-600">
+                            <i class="fa fa-check text-primary mr-2 mt-1"></i>
+                            <p class="leading-relaxed">
+                                低碳协同控制：通过联锁风机控制，实现风机与生产节奏精准匹配，降低能源消耗
+                            </p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- 成功案例1 -->
+            <div class="project-item industrial group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 " data-category="industrial">
+                <!-- 图片1 -->
+                <div class="h-45 overflow-hidden">
+                    <img th:src="@{/img/huajufeng/a33.png}" alt="数字化出铁沟技术" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" style="height: 300px;">
+                </div>
+                <!-- 内容1 -->
+                <div class="p-6">
+                    <!-- 模块头 -->
+                    <div class="flex items-center mb-4">
+                        <h3 class="text-2xl font-bold text-dark">数字化出铁沟技术</h3>
+                    </div>
+                    <!-- 描述 -->
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        &emsp;&emsp;为响应钢铁企业安全与降本需求，我们首创数字化出铁沟，制作仿真模型，实时显示铁沟流动情况，用耐高温热电偶实时监控，异常即报警，防止侵蚀穿孔，保护炉体。
+                    </p>
+                </div>
+            </div>
+            <!-- 成功案例2 -->
+            <div class="project-item industrial group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2  " data-category="industrial">
+                <!-- 图片2 -->
+                <div class="overflow-hidden" style="height:300px;">
+                    <!-- 视频高度 -->
+                    <video controls autoplay loop muted
+                           class="w-full h-[300px] object-cover transition-transform duration-500 group-hover:scale-110">
+                        <source th:src="@{/img/huajufeng/b3.mp4}" type="video/mp4">
+                    </video>
+                </div>
+                <!-- 内容2 -->
+                <div class="p-6">
+                    <!-- 模块头 -->
+                    <div class="flex items-center mb-4">
+                        <h3 class="text-2xl font-bold text-dark">铁沟流动情况</h3>
+                    </div>
+                    <!-- 描述 -->
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        数字化出铁沟仿真模型
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white pt-16 pb-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div class="yejiao1" style="border-right: 2px solid #ffffff;padding-right: 2.5rem; ">
+                <div class="flex items-center mb-6">
+                    <div class="h-14 w-14 rounded-lg bg-dark flex items-center justify-center mr-3">
+                        <img th:src="@{/img/huajufeng/a01.png}" style="width: 100px;height: 35px">
+                    </div>
+                </div>
+                <p class="text-gray-400 mb-6">我们致力于为客户提供全方位的工程技术服务，从规划设计到实施落地，为您的项目保驾护航。</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-weixin"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-weibo"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-linkedin"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <i class="fa fa-youtube-play"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="other-company1 lg:ml-20">
+                <h4 class="text-lg font-semibold mb-6">华钜峰工程技术(河北)有限公司</h4>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <i class="fa fa-map-marker text-primary mt-1 mr-3"></i>
+                        <a href="http://api.map.baidu.com/geocoder?address=河北省唐山市迁安市燕山南路东燕钢丽景家园8号楼&output=html&src=webapp.baidu.openAPIdemo" target="_blank" class="text-gray-400 hover-underline">河北省唐山市迁安市燕山南路东燕钢丽景家园8号楼</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-admin text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">吴美岳</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-phone text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">15373572770</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-envelope text-primary mt-1 mr-3"></i>
+                        <a href="mailto:hebei@huajufeng.com" class="text-gray-400 hover-underline">hebei@huajufeng.com</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-clock-o text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">周一至周五: 8:30 - 17:30</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="other-company2 lg:ml-20">
+                <h4 class="text-lg font-semibold mb-6">安徽华钜峰工程技术有限公司</h4>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <i class="fa fa-map-marker text-primary mt-1 mr-3"></i>
+                        <a href="http://api.map.baidu.com/geocoder?address=安徽省马鞍山市慈湖高新技术产业开发区慈湖街道金阳路335号7号楼&output=html&src=webapp.baidu.openAPIdemo"
+                           target="_blank"
+                           class="text-gray-400 hover-underline">安徽省马鞍山市慈湖高新技术产业开发区慈湖街道金阳路335号7号楼</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-admin text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">濮亮</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-phone text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">18755501922</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-envelope text-primary mt-1 mr-3"></i>
+                        <a href="mailto:anhui@huajufeng.com" class="text-gray-400 hover-underline">anhui@huajufeng.com</a>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-clock-o text-primary mt-1 mr-3"></i>
+                        <span class="text-gray-400">周一至周五: 8:30 - 17:30</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-800 pt-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 mb-4 md:mb-0">© 2025 华钜峰工程技术(上海)有限公司. 保留所有权利.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">隐私政策</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">服务条款</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors">网站地图</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<script>
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    const companyName = document.getElementById('company-name');
+    const backToTopBtn = document.getElementById('back-to-top');
+
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+            navbar.classList.add('bg-[rgb(255,122,40)]', 'shadow-md');
+            navbar.classList.remove('bg-transparent');
+            companyName.classList.remove('text-white');
+            companyName.classList.add('text-primary');
+
+            // 更改导航链接颜色
+            const navLinks = navbar.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.classList.remove('text-white');
+                link.classList.add('text-gray-700');
+            });
+
+            // 更改移动端菜单按钮颜色
+            const menuToggle = document.getElementById('menu-toggle');
+            menuToggle.classList.remove('text-white');
+            menuToggle.classList.add('text-primary');
+        } else {
+            navbar.classList.remove('bg-white', 'shadow-md');
+            navbar.classList.add('bg-[rgb(255,122,40)]');
+            companyName.classList.add('text-white');
+            companyName.classList.remove('text-primary');
+
+            // 恢复导航链接颜色
+            const navLinks = navbar.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.classList.add('text-white');
+                link.classList.remove('text-gray-700');
+            });
+
+            // 恢复移动端菜单按钮颜色
+            const menuToggle = document.getElementById('menu-toggle');
+            menuToggle.classList.add('text-white');
+            menuToggle.classList.remove('text-primary');
+        }
+    });
+</script>
+</body>
+</html>

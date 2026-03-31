@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.customer.mapper.CustomerSubMapper">
+
+    <resultMap type="CustomerSub" id="CustomerSubResult">
+        <result property="id" column="id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="deleteFlag" column="delete_flag"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="wayOfVision" column="way_of_vision"/>
+        <result property="progress" column="progress"/>
+        <result property="communicationTime" column="communication_time"/>
+        <result property="note" column="note"/>
+    </resultMap>
+
+    <sql id="selectCustomerSubVo">
+        select id,
+               create_by,
+               update_by,
+               create_time,
+               update_time,
+               delete_flag,
+               customer_id,
+               way_of_vision,
+               progress,
+               communication_time,
+               note
+        from t_customer_sub
+    </sql>
+
+    <select id="selectCustomerSubList" parameterType="CustomerSub" resultMap="CustomerSubResult">
+        <include refid="selectCustomerSubVo"/>
+        <where>
+            <if test="deleteFlag != null ">and delete_flag = #{deleteFlag}</if>
+            <if test="customerId != null ">and customer_id = #{customerId}</if>
+            <if test="wayOfVision != null">and way_of_vision = #{wayOfVision}</if>
+            <if test="progress != null  and progress != ''">and progress = #{progress}</if>
+            <if test="communicationTime != null ">and communication_time = #{communicationTime}</if>
+            <if test="note != null  and note != ''">and note = #{note}</if>
+            and delete_flag = 0
+        </where>
+    </select>
+
+    <select id="selectCustomerSubById" parameterType="Long" resultMap="CustomerSubResult">
+        <include refid="selectCustomerSubVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertCustomerSub" parameterType="CustomerSub" useGeneratedKeys="true" keyProperty="id">
+        insert into t_customer_sub
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="customerId != null">customer_id,</if>
+            <if test="wayOfVision != null">way_of_vision,</if>
+            <if test="progress != null and progress != ''">progress,</if>
+            <if test="communicationTime != null">communication_time,</if>
+            <if test="note != null">note,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="customerId != null">#{customerId},</if>
+            <if test="wayOfVision != null">#{wayOfVision},</if>
+            <if test="progress != null and progress != ''">#{progress},</if>
+            <if test="communicationTime != null">#{communicationTime},</if>
+            <if test="note != null">#{note},</if>
+        </trim>
+    </insert>
+
+    <update id="updateCustomerSub" parameterType="CustomerSub">
+        update t_customer_sub
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="customerId != null">customer_id = #{customerId},</if>
+            <if test="wayOfVision != null">way_of_vision = #{wayOfVision},</if>
+            <if test="progress != null and progress != ''">progress = #{progress},</if>
+            <if test="communicationTime != null">communication_time = #{communicationTime},</if>
+            <if test="note != null">note = #{note},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteCustomerSubById" parameterType="Long">
+        update t_customer_sub
+        set delete_flag = 1,
+            update_by=#{loginName}
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteCustomerSubByIds" parameterType="String">
+        update t_customer_sub
+        set delete_flag = 1,
+        update_by=#{loginName} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

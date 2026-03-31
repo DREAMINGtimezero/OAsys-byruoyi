@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+	<th:block th:include="include :: header('项目详情')" />
+	<style type="text/css">
+		.table-striped{ margin-bottom: 20px}
+		.fixed-table-toolbar{display: none}
+		.title{font-size: 16px;font-weight: bold}
+		.table-striped table thead {
+			background-color: #3C8DBC;
+			color: #FFF;
+		}
+		.table-striped table > tbody > tr.detail-view > td > div.bootstrap-table.bootstrap3 > div.fixed-table-container > div.fixed-table-body > table > thead{
+			background-color: #F8AC59;
+			color: #FFF;
+		}
+
+	</style>
+</head>
+<body class="gray-bg">
+<div class="container-div">
+	<div class="row">
+		<div class="col-sm-12 search-collapse">
+			<span class="title">项目主项</span>
+			<form class="form-horizontal m" id="project-statis-detail" th:object="${projectStatis}">
+				<input name="id" type="hidden" th:field="*{id}" />
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="col-sm-4 control-label">项目编号：</label>
+							<div class="col-sm-6">
+								<input class="form-control" type="text" name="projectCode" th:field="*{projectCode}" readonly>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="col-sm-4 control-label">项目名称：</label>
+							<div class="col-sm-6">
+								<input class="form-control" type="text" name="projectName" th:field="*{projectName}" readonly>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="col-sm-4 control-label">项目详情：</label>
+							<div class="col-sm-6">
+								<textarea name="projectDetail" maxlength="1000" class="form-control"
+										  rows="3" style="width: 930px" th:field="*{projectDetail}" readonly></textarea>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="col-sm-4 control-label">创建人：</label>
+							<div class="col-sm-6">
+								<input class="form-control" type="text" name="createBy" th:field="*{createBy}" readonly>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="col-sm-4 control-label">创建时间：</label>
+							<div class="col-sm-6">
+								<input class="form-control" type="text" name="createTime"
+									   th:value="${#dates.format(projectStatis.createTime, 'yyyy-MM-dd HH:mm:ss')}" readonly>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="col-sm-4 control-label">创建人所属岗位：</label>
+							<div class="col-sm-6">
+								<input class="form-control" type="text" name="createPost" th:field="*{createPost}" readonly>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="col-sm-4 control-label">创建人所属部门：</label>  <!-- 调整 label 宽度 -->
+							<div class="col-sm-6">
+								<input class="form-control" type="text" name="createDept" th:field="*{createDept}" readonly>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+
+			<div class="title" >合同</div>
+			<div class="col-xs-12 select-table table-striped">
+				<table id="bootstrap-table-contract"></table>
+			</div>
+
+			<div class="title">技术协议</div>
+			<div class="col-xs-12 select-table table-striped">
+				<table id="bootstrap-table-technicalAgreement"></table>
+			</div>
+
+			<div class="title">硬件</div>
+			<div class="col-xs-12 select-table table-striped">
+				<table id="bootstrap-table-hardware"></table>
+			</div>
+
+			<div class="title">软件</div>
+			<div class="col-xs-12 select-table table-striped">
+				<table id="bootstrap-table-software"></table>
+			</div>
+
+			<div class="title">服务</div>
+			<div class="col-xs-12 select-table table-striped">
+				<table id="bootstrap-table-service"></table>
+			</div>
+
+			<div class="title">差旅费</div>
+			<div class="col-xs-12 select-table table-striped">
+				<table id="bootstrap-table-travel-expenses"></table>
+			</div>
+
+			<div class="title">请款</div>
+			<div class="col-xs-12 select-table table-striped">
+				<table id="bootstrap-table-please-money"></table>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<th:block th:include="include :: footer" />
+<script th:src="@{/js/jquery.tmpl.js}"></script>
+<script th:inline="javascript">
+	var projectCode = [[${projectStatis.projectCode}]];
+
+	$(function (){
+		initTableContract(); //合同
+		initTableTechnicalAgreement(); //技术协议
+		initTableHardware(); //硬件
+		initTableSoftware();//软件
+		initTableService(); //服务
+		initTableTravelExpenses(); //差旅费
+		initTablePleaseMoney(); //请款
+	})
+
+	//文件下载
+	function handleDownload(fileNames) {
+		window.location.href = ctx + "common/batchDownload?fileName=" + encodeURI(fileNames);
+	}
+
+	// 合同表格初始化
+	function initTableContract(){
+		var options = {
+			id: "bootstrap-table-contract",
+			url: ctx + "contract/contract/list",
+			detailUrl: ctx + "contract/contract/detail/{id}",
+			modalName: "合同",
+			pagination: false,
+			detailView: true,
+			queryParams:{"projectCode":projectCode,"isCeo":true},
+			onExpandRow : function(index, row, $detail) {
+				initSonTableContract(index, row, $detail);
+			},
+			columns: [
+				{
+					field: 'contractId',
+					title: '合同编号',
+					align: 'center'
+				},
+				{
+					field: 'contractName',
+					title: '合同名称',
+					align: 'center'
+				},
+				{
+					field: 'description',
+					title: '描述信息',
+					align: 'center'
+				},
+				{
+					field: 'createBy',
+					title: '创建人',
+					align: 'center'
+				},
+				{
+					field: 'createDept',
+					title: '创建人部门',
+					align: 'center'
+				},
+				{
+					field: 'createPost',
+					title: '创建人岗位',
+					align: 'center'
+				},
+				{
+					field: 'createTime',
+					title: '创建时间',
+					align: 'center'
+				},
+				{
+					field: 'note',
+					title: '备注'
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">处理中</span>';
+						}else if (value == 3) {
+							return '<span class="badge badge-primary">已完成</span>';
+						}
+						return '<span class="badge badge-default">未知</span>';
+					}
+				}]
+		};
+		$.table.init(options);
+	}
+
+	// 合同表格子项初始化
+	function initSonTableContract(index, row, $detail){
+		var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+		$(childTable).bootstrapTable({
+			url: ctx + "contract/contract/process-list",
+			method: 'post',
+			sidePagination: "server",
+			contentType: "application/x-www-form-urlencoded",
+			queryParams: function(params) {    // 添加查询参数
+				var queryParams = {
+					pageSize: params.limit,
+					pageNum: params.offset / params.limit + 1,
+					contractId: row.id  // 传递主表合同ID
+				};
+				return queryParams;
+			},
+			columns: [
+				{
+					field : 'createBy',
+					title : '发起人',
+					align: 'center'
+				},
+				{
+					field : 'createDept',
+					title : '发起人所属部门',
+					align: 'center'
+				},
+				{
+					field : 'createPost',
+					title : '发起人所属岗位',
+					align: 'center'
+				},
+				{
+					field : 'initiateNote',
+					title : '发起意见',
+					align: 'center'
+				},
+				{
+					field : 'initiateTime',
+					title : '发起时间',
+					align: 'center'
+				},
+				{
+					field : 'handleBy',
+					title : '指定处理人',
+					align: 'center'
+				},
+				{
+					field : 'handleDept',
+					title : '处理人所属部门',
+					align: 'center'
+				},
+				{
+					field : 'handlePost',
+					title : '处理人所属岗位',
+					align: 'center'
+				},
+				{
+					field : 'handleNote',
+					title : '处理意见',
+					align: 'center'
+				},
+				{
+					field : 'handleTime',
+					title : '处理时间',
+					align: 'center'
+				},
+				{
+					title: '文件',
+					align: 'center',
+					formatter: function (value, row, index) {
+						let actions = [];
+						if (!$.common.isEmpty(row.fileNames))
+							actions.push(`<a id="downloadFile-${row.id}"  class="btn btn-warning btn-xs" title="文件下载" onclick="handleDownload('${row.fileNames}')"><i class="fa fa-download"></i></a>&nbsp;`);
+						else
+							actions.push(`<span>无文件</span>`);
+						return actions.join('');
+					}
+				},
+				{
+					field: 'status',
+					title: '处理状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">待处理</span>';
+						} else if (value == 3) {
+							return '<span class="badge badge-primary">已处理</span>';
+						} else if (value == 4) {
+							return '<span class="badge badge-default">已驳回</span>';
+						}
+						return '<span class="badge badge-default">未知</span>';
+					}
+				}
+			]
+		});
+	}
+
+	// 技术协议表格初始化
+	function initTableTechnicalAgreement(){
+		var options = {
+			id: "bootstrap-table-technicalAgreement",
+			url: ctx + "contract/technical-agreement/list",
+			detailUrl: ctx + "contract/technical-agreement/detail/{id}",
+			modalName: "技术协议",
+			pagination: false,
+			detailView: true,
+			queryParams:{"projectCode":projectCode,"isCeo":true},
+			onExpandRow : function(index, row, $detail) {
+				initSonTableTechnicalAgreement(index, row, $detail);
+			},
+			columns: [
+				{
+					field: 'technicalAgreementCode',
+					align: 'center',
+					title: '技术协议编号'
+				},
+				{
+					field: 'title',
+					align: 'center',
+					title: '技术协议名称',
+				},
+				{
+					field: 'description',
+					align: 'center',
+					title: '描述信息',
+				},
+				{
+					field: 'createBy',
+					align: 'center',
+					title: '创建人'
+				},
+				{
+					field: 'createDept',
+					align: 'center',
+					title: '创建人部门'
+				},
+				{
+					field: 'createPost',
+					align: 'center',
+					title: '创建人岗位'
+				},
+				{
+					field: 'createTime',
+					title: '创建时间',
+					align: 'center',
+				},
+				{
+					field: 'note',
+					align: 'center',
+					title: '备注信息',
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if(value == 1){
+							return '<span class="badge badge-danger">未提交</span>';
+						}else if(value == 2){
+							return '<span class="badge badge-warning">进行中</span>';
+						}else if (value == 3){
+							return '<span class="badge badge-primary">已完成</span>';
+						}
+					}
+				},
+			]
+		};
+		$.table.init(options);
+	}
+
+	// 技术协议子表格初始化
+	function initSonTableTechnicalAgreement(index, row, $detail){
+		var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+		$(childTable).bootstrapTable({
+			url: ctx + "contract/technical-agreement/sub/list",
+			method: 'post',
+			sidePagination: "server",
+			contentType: "application/x-www-form-urlencoded",
+			queryParams: function(params) {    // 添加查询参数
+				var queryParams = {
+					pageSize: params.limit,
+					pageNum: params.offset / params.limit + 1,
+					technicalAgreementId: row.id  // 传递主表ID
+				};
+				return queryParams;
+			},
+			columns: [
+				{
+					field: 'createBy',
+					align: 'center',
+					title: '发起人'
+				},
+				{
+					field: 'createPost',
+					align: 'center',
+					title: '发起人所属岗位'
+				},
+				{
+					field: 'createDept',
+					align: 'center',
+					title: '发起人所属部门'
+				},
+				{
+					field: 'handleBy',
+					align: 'center',
+					title: '处理人'
+				},
+				{
+					field: 'handlePost',
+					align: 'center',
+					title: '处理人所属岗位'
+				},
+				{
+					field: 'handleDept',
+					align: 'center',
+					title: '处理人所属部门'
+				},
+				{
+					field: 'initiateTime',
+					align: 'center',
+					title: '发起时间'
+				},
+				{
+					field: 'initiateNote',
+					align: 'center',
+					title: '发起意见'
+				},
+				{
+					field: 'handleTime',
+					align: 'center',
+					title: '处理时间'
+				},
+				{
+					field: 'handleNote',
+					align: 'center',
+					title: '处理意见'
+				},
+				{
+					title: '文件',
+					align: 'center',
+					formatter: function (value, row, index) {
+						let actions = [];
+						if (!$.common.isEmpty(row.fileNames))
+							actions.push(`<a id="downloadFile-${row.id}"  class="btn btn-warning btn-xs" title="文件下载" onclick="handleDownload('${row.fileNames}')"><i class="fa fa-download"></i></a>&nbsp;`);
+						else
+							actions.push(`<span>无文件</span>`);
+						return actions.join('');
+					}
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';//绿色 badge-primary
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">待处理</span>';//黄色 badge-warning
+						} else if (value == 3) {
+							return '<span class="badge badge-primary">已处理</span>';//蓝色 badge-success
+						} else if (value == 4) {
+							return '<span class="badge badge-default">已驳回</span>';//红色 badge-danger
+						}
+						return '<span class="badge badge-default">未知</span>'; //灰色 badge-default
+					}
+				},
+			]
+		});
+	}
+
+	// 硬件表格初始化
+	function initTableHardware(){
+		var options = {
+			id: "bootstrap-table-hardware",
+			url: ctx + "purchase/hardware/list",
+			detailUrl: ctx + "purchase/hardware/detail/{id}",
+			modalName: "硬件",
+			pagination: false,
+			detailView: true,
+			queryParams:{"projectCode":projectCode,"isCeo":true},
+			onExpandRow : function(index, row, $detail) {
+				initSonTableHardware(index, row, $detail);
+			},
+			columns: [
+				{
+					field: 'hardwareCode',
+					align: 'center',
+					title: '硬件编号'
+				},
+				{
+					field: 'hardwareName',
+					align: 'center',
+					title: '硬件名称'
+				},
+				{
+					field: 'hardwareDetails',
+					align: 'center',
+					title: '硬件详情'
+				},
+				{
+					field: 'money',
+					align: 'center',
+					title: '金额'
+				},
+				{
+					field: 'createBy',
+					align: 'center',
+					title: '创建人'
+				},
+				{
+					field: 'createDept',
+					align: 'center',
+					title: '创建人部门'
+				},
+				{
+					field: 'createPost',
+					align: 'center',
+					title: '创建人岗位'
+				},
+				{
+					field: 'createTime',
+					align: 'center',
+					title: '创建时间'
+				},
+				{
+					field: 'note',
+					align: 'center',
+					title: '备注'
+				},
+				{
+					field: 'costType',
+					title: '费控类型',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if(value == 1){
+							return '<span class="badge badge-primary">费控内</span>';
+						}else if(value == 2){
+							return '<span class="badge badge-warning">费控外</span>';
+						}
+					}
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if(value == 1){
+							return '<span class="badge badge-danger">未提交</span>';
+						}else if(value == 2){
+							return '<span class="badge badge-warning">进行中</span>';
+						}else if (value == 3){
+							return '<span class="badge badge-primary">已完成</span>';
+						}
+					}
+				},
+			]
+		};
+		$.table.init(options);
+	}
+
+	// 硬件子表格初始化
+	function initSonTableHardware(index, row, $detail){
+		var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+		$(childTable).bootstrapTable({
+			url: ctx + "purchase/hardware/findChildByHardwareId",
+			method: 'post',
+			sidePagination: "server",
+			contentType: "application/x-www-form-urlencoded",
+			queryParams: function(params) {    // 添加查询参数
+				var queryParams = {
+					pageSize: params.limit,
+					pageNum: params.offset / params.limit + 1,
+					hardwareId: row.id  // 传递主表ID
+				};
+				return queryParams;
+			},
+			columns: [
+				{
+					field : 'createBy',
+					align: 'center',
+					title : '创建人'
+				},
+				{
+					field : 'createTime',
+					align: 'center',
+					title : '创建时间'
+				},
+				{
+					field : 'initiateNote',
+					align: 'center',
+					title : '发起意见'
+				},
+				{
+					field : 'initiateTime',
+					align: 'center',
+					title : '发起时间'
+				},
+				{
+					field : 'handleBy',
+					align: 'center',
+					title : '指定处理人'
+				},
+				{
+					field : 'handlePost',
+					align: 'center',
+					title : '处理人岗位'
+				},
+				{
+					field : 'handleDept',
+					align: 'center',
+					title : '处理人部门'
+				},
+				{
+					field : 'handleNote',
+					align: 'center',
+					title : '处理意见'
+				},
+				{
+					field : 'handleTime',
+					align: 'center',
+					title : '处理时间'
+				},
+				{
+					field : 'note',
+					align: 'center',
+					title : '备注'
+				},
+				{
+					title: '文件',
+					align: 'center',
+					formatter: function (value, row, index) {
+						let actions = [];
+						if (!$.common.isEmpty(row.fileNames))
+							actions.push(`<a id="downloadFile-${row.id}"  class="btn btn-warning btn-xs" title="文件下载" onclick="handleDownload('${row.fileNames}')"><i class="fa fa-download"></i></a>&nbsp;`);
+						else
+							actions.push(`<span>无文件</span>`);
+						return actions.join('');
+					}
+				},
+				{
+					field: 'status',
+					title: '处理状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';//绿色 badge-primary
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">待处理</span>';//黄色 badge-warning
+						} else if (value == 3) {
+							return '<span class="badge badge-primary">已处理</span>';//蓝色 badge-success
+						} else if (value == 4) {
+							return '<span class="badge badge-default">已驳回</span>';//红色 badge-danger
+						}
+						return '<span class="badge badge-default">未知</span>'; //灰色 badge-default
+					}
+				},
+			]
+		});
+	}
+
+	// 软件表格初始化
+	function initTableSoftware(){
+		var options = {
+			id: "bootstrap-table-software",
+			url: ctx + "purchase/software/list",
+			detailUrl: ctx + "purchase/software/detail/{id}",
+			modalName: "软件",
+			pagination: false,
+			detailView: true,
+			queryParams:{"projectCode":projectCode,"isCeo":true},
+			onExpandRow : function(index, row, $detail) {
+				initSonTableSoftware(index, row, $detail);
+			},
+			columns: [
+				{
+					field: 'softwareCode',  // 对应 software_code
+					title: '软件编号',
+					align: 'center'
+				},
+				{
+					field: 'softwareName',
+					title: '软件名称',
+					align: 'center'
+				},
+				{
+					field: 'description',   // 对应 description
+					title: '描述信息',
+					align: 'center'
+				},
+				{
+					field: 'createBy',      // 对应 create_by
+					title: '创建人',
+					align: 'center'
+				},
+				{
+					field: 'createDept',    // 对应 create_dept
+					title: '创建人部门',
+					align: 'center'
+				},
+				{
+					field: 'createPost',    // 对应 create_post
+					title: '创建人岗位',
+					align: 'center'
+				},
+				{
+					field: 'createTime',    // 对应 create_time
+					title: '创建时间',
+					align: 'center'
+				},
+				{
+					field: 'money',
+					title: '金额',
+					align: 'center'
+				},
+				{
+					field: 'costType',    // 对应 cost_type
+					title: '费用类型',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-primary">费控内</span>';
+						}else if (value == 2) {
+							return '<span class="badge badge-warning">费控外</span>';
+						}
+						return '<span class="badge badge-default">未知</span>';
+					}
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">处理中</span>';
+						}else if (value == 3) {
+							return '<span class="badge badge-primary">已完成</span>';
+						}
+						return '<span class="badge badge-default">未知</span>';
+					}
+				},
+			]
+		};
+		$.table.init(options);
+	}
+
+	// 软件子表格初始化
+	function initSonTableSoftware(index, row, $detail){
+		var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+		$(childTable).bootstrapTable({
+			url: ctx + "purchase/software/process-list",
+			method: 'post',
+			sidePagination: "server",
+			contentType: "application/x-www-form-urlencoded",
+			queryParams: function(params) {    // 添加查询参数
+				var queryParams = {
+					pageSize: params.limit,
+					pageNum: params.offset / params.limit + 1,
+					softwareId: row.id  // 传递主表ID
+				};
+				return queryParams;
+			},
+			columns: [
+				{
+					field : 'createBy',
+					align: 'center',
+					title : '创建人'
+				},
+				{
+					field : 'createTime',
+					align: 'center',
+					title : '创建时间'
+				},
+				{
+					field : 'initiateNote',
+					align: 'center',
+					title : '发起意见'
+				},
+				{
+					field : 'initiateTime',
+					align: 'center',
+					title : '发起时间'
+				},
+				{
+					field : 'handleBy',
+					align: 'center',
+					title : '指定处理人'
+				},
+				{
+					field : 'handlePost',
+					align: 'center',
+					title : '处理人岗位'
+				},
+				{
+					field : 'handleDept',
+					align: 'center',
+					title : '处理人部门'
+				},
+				{
+					field : 'handleNote',
+					align: 'center',
+					title : '处理意见'
+				},
+				{
+					field : 'handleTime',
+					align: 'center',
+					title : '处理时间'
+				},
+				{
+					field : 'note',
+					align: 'center',
+					title : '备注'
+				},
+				{
+					title: '文件',
+					align: 'center',
+					formatter: function (value, row, index) {
+						let actions = [];
+						if (!$.common.isEmpty(row.fileNames))
+							actions.push(`<a id="downloadFile-${row.id}"  class="btn btn-warning btn-xs" title="文件下载" onclick="handleDownload('${row.fileNames}')"><i class="fa fa-download"></i></a>&nbsp;`);
+						else
+							actions.push(`<span>无文件</span>`);
+						return actions.join('');
+					}
+				},
+				{
+					field: 'status',
+					title: '处理状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';//绿色 badge-primary
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">待处理</span>';//黄色 badge-warning
+						} else if (value == 3) {
+							return '<span class="badge badge-primary">已处理</span>';//蓝色 badge-success
+						} else if (value == 4) {
+							return '<span class="badge badge-default">已驳回</span>';//红色 badge-danger
+						}
+						return '<span class="badge badge-default">未知</span>'; //灰色 badge-default
+					}
+				},
+			]
+		});
+	}
+
+	// 服务表格初始化
+	function initTableService(){
+		var options = {
+			id: "bootstrap-table-service",
+			url: ctx + "purchase/service/list",
+			detailUrl: ctx + "purchase/service/detail/{id}",
+			modalName: "服务",
+			pagination: false,
+			detailView: true,
+			queryParams:{"projectCode":projectCode,"isCeo":true},
+			onExpandRow : function(index, row, $detail) {
+				initSonTableService(index, row, $detail);
+			},
+			columns: [
+				{
+					field: 'serviceCode',
+					title: '服务编号',
+					align: 'center',
+				},
+				{
+					field: 'title',
+					title: '服务名称',
+					align: 'center',
+				},
+
+				{
+					field: 'description',
+					title: '描述信息',
+					align: 'center',
+				},
+				{
+					field: 'note',
+					title: '备注信息',
+					align: 'center',
+				},
+				{
+					field: 'money',
+					title: '服务开销金额',
+					align: 'center',
+				},
+				{
+					field: 'createBy',
+					title: '创建人',
+					align: 'center',
+				},
+				{
+					field: 'createTime',
+					title: '创建时间',
+					align: 'center',
+				},
+
+				{
+					field: 'costType',    // 对应 cost_type
+					title: '费用类型',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (String(value) === '1') {
+							return '<span class="badge badge-primary">费控内</span>';
+						}else if (String(value) === '2') {
+							return '<span class="badge badge-warning">费控外</span>';
+						}
+						return '<span class="badge badge-default">未知</span>';
+					}
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if(value == 1){
+							return '<span class="badge badge-danger">未提交</span>';
+						}else if(value == 2){
+							return '<span class="badge badge-warning">进行中</span>';
+						}else if (value == 3){
+							return '<span class="badge badge-primary">已完成</span>';
+						}
+					}
+				}
+			]
+		};
+		$.table.init(options);
+	}
+
+	// 服务子表格初始化
+	function initSonTableService(index, row, $detail){
+		var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+		$(childTable).bootstrapTable({
+			url: ctx + "purchase/service/sub/list",
+			method: 'post',
+			sidePagination: "server",
+			contentType: "application/x-www-form-urlencoded",
+			queryParams: function(params) {    // 添加查询参数
+				var queryParams = {
+					pageSize: params.limit,
+					pageNum: params.offset / params.limit + 1,
+					relativeId: row.id  // 传递主表ID
+				};
+				return queryParams;
+			},
+			columns: [
+				{
+					field: 'createBy',
+					align: 'center',
+					title: '发起人',
+				},
+				{
+					field: 'createPost',
+					align: 'center',
+					title: '发起人所属岗位',
+				},
+				{
+					field: 'createDept',
+					align: 'center',
+					title: '发起人所属部门',
+				},
+				{
+					field: 'handleBy',
+					align: 'center',
+					title: '处理人',
+				},
+				{
+					field: 'handlePost',
+					align: 'center',
+					title: '处理人所属岗位',
+				},
+				{
+					field: 'handleDept',
+					align: 'center',
+					title: '处理人所属部门',
+				},
+				{
+					field: 'initiateTime',
+					align: 'center',
+					title: '发起时间',
+				},
+				{
+					field: 'initiateNote',
+					align: 'center',
+					title: '发起意见',
+				},
+				{
+					field: 'handleTime',
+					align: 'center',
+					title: '处理时间',
+				},
+				{
+					field: 'handleNote',
+					align: 'center',
+					title: '处理意见',
+				},
+				{
+					title: '文件',
+					align: 'center',
+					formatter: function (value, row, index) {
+						let actions = [];
+						if (!$.common.isEmpty(row.fileNames))
+							actions.push(`<a id="downloadFile-${row.id}"  class="btn btn-warning btn-xs" title="文件下载" onclick="downloadFiles('${row.fileNames}')"><i class="fa fa-download"></i></a>&nbsp;`);
+						else
+							actions.push(`<span>无文件</span>`);
+						return actions.join('');
+					}
+				},
+				{
+					field: 'status',
+					title: '处理状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';//绿色 badge-primary
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">待处理</span>';//黄色 badge-warning
+						} else if (value == 3) {
+							return '<span class="badge badge-primary">已处理</span>';//蓝色 badge-success
+						} else if (value == 4) {
+							return '<span class="badge badge-default">已驳回</span>';//红色 badge-danger
+						}
+						return '<span class="badge badge-default">未知</span>'; //灰色 badge-default
+					}
+				}
+			]
+		});
+	}
+
+	// 差旅费表格初始化
+	function initTableTravelExpenses(){
+		var options = {
+			id: "bootstrap-table-travel-expenses",
+			url: ctx + "installation/travel-expenses/list",
+			detailUrl: ctx + "installation/travel-expenses/detail/{id}",
+			modalName: "差旅费",
+			pagination: false,
+			detailView: true,
+			queryParams:{"projectCode":projectCode,"isCeo":true},
+			onExpandRow : function(index, row, $detail) {
+				initSonTableTravelExpenses(index, row, $detail);
+			},
+			columns: [
+				{
+					field: 'outCode',
+					align: 'center',
+					title: '差旅编号'
+				},
+				{
+					field: 'outDescribe',
+					align: 'center',
+					title: '差旅描述'
+				},
+				{
+					field: 'outDetails',
+					align: 'center',
+					title: '差旅详情'
+				},
+				{
+					field: 'outMoney',
+					align: 'center',
+					title: '申请金额'
+
+				},
+				{
+					field: 'createBy',
+					align: 'center',
+					title: '创建人'
+				},
+				{
+					field: 'createDept',
+					align: 'center',
+					title: '创建人部门'
+				},
+				{
+					field: 'createPost',
+					align: 'center',
+					title: '创建人岗位'
+				},
+				{
+					field: 'createTime',
+					align: 'center',
+					title: '创建时间'
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if(value == 1){
+							return '<span class="badge badge-danger">未提交</span>';
+						}else if(value == 2){
+							return '<span class="badge badge-warning">进行中</span>';
+						}else if (value == 3){
+							return '<span class="badge badge-primary">已完成</span>';
+						}
+					}
+				},
+				]
+		};
+		$.table.init(options);
+	}
+
+	// 差旅费子表格初始化
+	function initSonTableTravelExpenses(index, row, $detail){
+		var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+		$(childTable).bootstrapTable({
+			url: ctx + "installation/travel-expenses/findOutChildByOutId",
+			method: 'post',
+			sidePagination: "server",
+			contentType: "application/x-www-form-urlencoded",
+			queryParams: function(params) {    // 添加查询参数
+				var queryParams = {
+					pageSize: params.limit,
+					pageNum: params.offset / params.limit + 1,
+					outId: row.id  // 传递主表ID
+				};
+				return queryParams;
+			},
+			columns: [
+				{
+					field : 'createBy',
+					title : '创建人'
+				},
+				{
+					field : 'createTime',
+					title : '创建时间'
+				},
+				{
+					field : 'initiateNote',
+					title : '发起意见'
+				},
+				{
+					field : 'initiateTime',
+					title : '发起时间'
+				},
+				{
+					field : 'handleBy',
+					title : '处理人'
+				},
+				{
+					field : 'handlePost',
+					title : '处理人岗位'
+				},
+				{
+					field : 'handleDept',
+					title : '处理人部门'
+				},
+				{
+					field : 'handleNote',
+					title : '处理意见'
+				},
+				{
+					field : 'handleTime',
+					title : '处理时间'
+				},
+				{
+					title: '文件',
+					align: 'center',
+					formatter: function (value, row, index) {
+						let actions = [];
+						if (!$.common.isEmpty(row.fileNames))
+							actions.push(`<a id="downloadFile-${row.id}"  class="btn btn-warning btn-xs" title="文件下载" onclick="handleDownload('${row.fileNames}')"><i class="fa fa-download"></i></a>&nbsp;`);
+						else
+							actions.push(`<span>无文件</span>`);
+						return actions.join('');
+					}
+				},
+				{
+					field: 'status',
+					title: '处理状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';//绿色 badge-primary
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">待处理</span>';//黄色 badge-warning
+						} else if (value == 3) {
+							return '<span class="badge badge-primary">已处理</span>';//蓝色 badge-success
+						} else if (value == 4) {
+							return '<span class="badge badge-default">已驳回</span>';//红色 badge-danger
+						}
+						return '<span class="badge badge-default">未知</span>'; //灰色 badge-default
+					}
+				},
+			]
+		});
+	}
+
+	// 请款表格初始化
+	function initTablePleaseMoney(){
+		var options = {
+			url: ctx + "please-money/config/config-list",
+			modalName: "请款",
+			id: "bootstrap-table-please-money",
+			detailView: true,
+			pagination: false,
+			queryParams:{"projectCode":projectCode,"isCeo":true},
+			onExpandRow : function(index, row, $detail) {
+				initSonTablePleaseMoney(index, row, $detail);
+			},
+			columns: [
+				{
+					field: 'id',
+					title: '主键',
+					visible: false
+				},
+				{
+					field: 'configName',
+					align: 'center',
+					title: '请款名称'
+				},
+				{
+					field: 'configDetail',
+					align: 'center',
+					title: '请款详情'
+				},
+				{
+					field: 'contractName',
+					align: 'center',
+					title: '关联合同'
+				},
+				{
+					field: 'title',
+					align: 'center',
+					title: '关联技术附件'
+				},
+				{
+					field: 'createBy',
+					align: 'center',
+					title: '创建人',
+				},
+				{
+					field: 'createTime',
+					align: 'center',
+					title: '创建时间'
+				},
+				{
+					field: 'createPost',
+					align: 'center',
+					title: '创建人所属岗位'
+				},
+				{
+					field: 'createDept',
+					align: 'center',
+					title: '创建人所属部门'
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if(value == 1){
+							return '<span class="badge badge-danger">未提交</span>';
+						}else if (value == 2){
+							return '<span class="badge badge-warning">进行中</span>';
+						}else if (value == 3){
+							return '<span class="badge badge-success">已完成</span>';
+						}
+					}
+				}
+			]
+		};
+		$.table.init(options);
+	}
+
+	// 请款子表格初始化
+	function initSonTablePleaseMoney(index, row, $detail){
+		var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+		$(childTable).bootstrapTable({
+			url: ctx + "please-money/config/config-detail-list",
+			method: 'post',
+			sidePagination: "server",
+			contentType: "application/x-www-form-urlencoded",
+			queryParams:{mId: row.id},
+			sortName: 'sort',
+			sortOrder: 'asc',
+			detailView: true,
+			onExpandRow : function(index, row, $detail) {
+				initSunTablePleaseMoney(index, row, $detail);
+			},
+			columns: [
+				{
+					field: 'sort',
+					align: 'center',
+					title: '排序',
+				},
+				{
+					field: 'pleaseMoneyType',
+					align: 'center',
+					title: "请款类型",
+				},
+				{
+					field: 'money',
+					align: 'center',
+					title: "请款金额",
+				},
+				{
+					field: 'createBy',
+					align: 'center',
+					title: '创建人',
+				},
+				{
+					field: 'createTime',
+					align: 'center',
+					title: '创建时间',
+				},
+				{
+					field: 'createPost',
+					align: 'center',
+					title: '创建人岗位',
+				},
+				{
+					field: 'createDept',
+					align: 'center',
+					title: '创建人部门',
+				},
+				{
+					field: 'status',
+					title: '状态',
+					align: 'center',
+					formatter: function(value, row, index) {
+						if(value == 1){
+							return '<span class="badge badge-danger">未开始</span>';
+						}else if (value == 2){
+							return '<span class="badge badge-warning">进行中</span>';
+						}else if (value == 3){
+							return '<span class="badge badge-success">已完成</span>';
+						}
+					}
+				}
+			]
+		});
+	}
+
+	// 请款孙表格初始化
+	function initSunTablePleaseMoney(index, row, $detail){
+		var childTable = $detail.html('<table style="table-layout:fixed"></table>').find('table');
+		$(childTable).bootstrapTable({
+			url: ctx + "please-money/config/config-sun-detail-list",
+			method: 'post',
+			sidePagination: "server",
+			contentType: "application/x-www-form-urlencoded",
+			queryParams:  { subId: row.id },
+			pagination: false,
+			columns: [
+				{
+					field: 'createBy',
+					align: 'center',
+					title: "创建人",
+				},
+				{
+					field: 'initiateNote',
+					align: 'center',
+					title: '发起人意见',
+				},
+				{
+					field: 'initiateTime',
+					align: 'center',
+					title: '发起时间',
+				},
+				{
+					field: 'handleBy',
+					align: 'center',
+					title: '指定处理人',
+				},
+				{
+					field: 'handleDept',
+					align: 'center',
+					title: '处理人部门',
+				},
+				{
+					field: 'handlePost',
+					align: 'center',
+					title: '处理人岗位',
+				},
+				{
+					field: 'handleNote',
+					align: 'center',
+					title: '处理意见',
+				},
+				{
+					field: 'handleTime',
+					align: 'center',
+					title: '处理时间',
+				},
+				{
+					title: '文件',
+					align: 'center',
+					formatter: function (value, row, index) {
+						let actions = [];
+						if (!$.common.isEmpty(row.fileNames))
+							actions.push(`<a class="btn btn-warning btn-xs" title="文件下载" onclick="handleDownload('${row.fileNames}')"><i class="fa fa-download"></i></a>&nbsp;`);
+						else
+							actions.push(`<span>无文件</span>`);
+						return actions.join('');
+					}
+				},
+				{
+					field: 'status',
+					align: 'center',
+					title: '状态',
+					formatter: function(value, row, index) {
+						if (value == 1) {
+							return '<span class="badge badge-danger">未提交</span>';//绿色 badge-primary
+						} else if (value == 2) {
+							return '<span class="badge badge-warning">待处理</span>';//黄色 badge-warning
+						} else if (value == 3) {
+							return '<span class="badge badge-success">已完成</span>';//蓝色 badge-success
+						} else if (value == 4) {
+							return '<span class="badge badge-default">已驳回</span>';//红色 badge-danger
+						}
+						return '<span class="badge badge-default">未知</span>'; //灰色 badge-default
+					}
+				}
+			],
+		});
+	}
+</script>
+</body>
+</html>

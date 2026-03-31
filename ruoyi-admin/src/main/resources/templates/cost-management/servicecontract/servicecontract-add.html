@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <th:block th:include="include :: header('新增服务合同')" />
+    <th:block th:include="include :: bootstrap-fileinput-css" />
+
+</head>
+<body class="">
+<div class="wrapper wrapper-content animated fadeInRight">
+   <form class="form-horizontal m" id="form-service-contract-add" method="post">
+       <div class="form-group">
+           <label class="col-sm-3 control-label ">服务合同编号：</label>
+           <div class="col-sm-8">
+               <input class="form-control" type="text" name="serviceContractId" id="serviceContractId" >
+           </div>
+       </div>
+       <div class="form-group">
+           <label class="col-sm-3 control-label is-required">服务合同名称：</label>
+           <div class="col-sm-8">
+               <input class="form-control" type="text" name="serviceContractName" id="serviceContractName" required>
+           </div>
+       </div>
+       <div class="form-group">
+           <label class="col-sm-3 control-label ">金额</label>
+           <div class="col-sm-8">
+               <input class="form-control" type="number" name="serviceAmount" id="serviceAmount" >
+           </div>
+       </div>
+       <div class="form-group">
+           <label class="col-sm-3 control-label is-required">服务合同描述:</label>
+           <div class="col-sm-8">
+               <textarea class="form-control" name="description" id="description"></textarea>
+           </div>
+       </div>
+       <div class="form-group">
+           <label class="col-sm-3 control-label">备注：</label>
+           <div class="col-sm-8">
+               <textarea class="form-control" name="note" id="note"></textarea>
+           </div>
+       </div>
+   </form>
+</div>
+</body>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: bootstrap-fileinput-js" />
+<script type="text/javascript">
+    var prefix = ctx + "cost-management/servicecontract";
+    $("#form-service-contract-add").validate({
+        focusCleanup: true
+        // 直接去掉 rules 里 projectCode 的配置
+    });
+    function submitHandler() {
+        // 如果表单验证通过
+        if ($.validate.form()) {
+
+            // 定义一个 Ajax 请求配置对象
+            var config = {
+                url: prefix + "/add",      // 提交的接口地址，比如 "/cost-management/servicecontract/add"
+                type: "post",              // 提交方式，POST 请求
+                dataType: "json",          // 希望后台返回 JSON 格式
+                data: $('#form-service-contract-add').serialize(), // 把 form 表单的数据序列化成 key=value&key=value 的形式
+                success: function(result) { // 当请求成功时执行的回调
+                    $.operate.successCallback(result); // 调用 RuoYi 封装的成功处理方法
+                }
+            };
+
+            // 用 jQuery 的 Ajax 方法发送请求
+            $.ajax(config);
+        }
+    }
+
+</script>
+</html>

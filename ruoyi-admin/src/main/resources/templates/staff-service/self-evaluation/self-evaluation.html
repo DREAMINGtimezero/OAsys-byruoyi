@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('个人评价')"/>
+    <th:block th:include="include :: bootstrap-select-css"/>
+    <style>
+        .btn-download-line{
+            display:inline-flex;
+            align-items:center;
+            gap:1px;            /* 10 ÷ 2 */
+            padding:5px 10px;   /* 10 24 ÷ 2 */
+            font-size:13px;    /* 15 ÷ 2 */
+            color:#0066ff;
+            border:1px solid #0066ff; /* 2 ÷ 2 */
+            border-radius:25px;     /* 25 ÷ 2 */
+            background:transparent;
+            cursor:pointer;
+            text-decoration:none;
+            position:relative;
+            overflow:hidden;
+            transition:color .3s ease;
+        }
+        .btn-download-line::before{
+            content:'';
+            position:absolute;
+            left:0;
+            top:0;
+            height:100%;
+            width:0;
+            background:#0066ff;
+            z-index:-1;
+            transition:width .3s ease;
+        }
+        .btn-download-line:hover{
+            color:#fff;
+        }
+        .btn-download-line:hover::before{
+            width:100%;
+        }
+    </style>
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="out-form">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <input type="hidden" name="isCeo" th:value="${isCeo}"  />
+                        </li>
+                        <li>
+                            <label>状态：</label>
+                            <select name="status">
+                                <option value="">所有</option>
+                                <option value="1">未提交</option>
+                                <option value="2">已提交</option>
+                            </select>
+                        </li>
+                        <li class="select-time">
+                            <label>创建时间： </label>
+                            <input type="text" class="time-input" name="startTime" placeholder="开始时间"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" name="endTime" placeholder="结束时间"/>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
+                                    class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
+                                    class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()">
+                <i class="fa fa-plus"></i> 新增
+            </a>
+        </div>
+
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+
+
+
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: bootstrap-select-js"/>
+<script th:inline="javascript">
+    var detailFlag = [[${@permission.hasPermi('monitor:operlog:detail')}]];
+    var datas = [[${@dict.getType('sys_oper_type')}]];
+    var prefix = ctx + "staff-service/self-evaluation";
+
+    var userName = [[${userName}]];
+
+    $(function () {
+        var options = {
+            url: prefix + "/list",
+            createUrl: prefix + "/add",
+            modalName: "个人评价",
+            columns: [
+                {
+                    field: 'id',
+                    title: '主键',
+                    align: 'center',
+                    visible: false
+                },
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: '创建人'
+                },
+                {
+                    field: 'createDept',
+                    align: 'center',
+                    title: '创建人部门'
+                },
+                {
+                    field: 'createPost',
+                    align: 'center',
+                    title: '创建人岗位'
+                },
+                {
+                    field: 'createTime',
+                    align: 'center',
+                    title: '创建时间'
+                },
+                {
+                    title: '文件',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+
+                        var actions = [];
+                        // 检查是否有文件数据，使用 row.fileNames 字段
+                        if ($.common.isNotEmpty(row.fileNames) && row.fileNames.trim() !== '') {
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileView(\'' + row.fileNames + '\')" title="文件预览"><i class="fa fa-folder-open"></i>预览</a> ');
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileDownload(\'' + row.fileNames + '\')" title="文件下载"><i class="fa fa-download"></i>下载</a>');
+
+                        } else {
+                            actions.push('<span class="text-muted">无文件</span>');
+                        }
+                        return actions.join('');
+                    }
+                },
+                {
+                    field: 'status',
+                    align: 'center',
+                    title: '状态 ',
+                    formatter: function(value, row, index) {
+                        if (value == 1) {
+                            return '<span class="badge badge-danger">未提交</span>';
+                        } else if (value == 2) {
+                            return '<span class="badge badge-success">已提交</span>';
+                        }
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        console.log('当前登录用户名:', userName, '创建人:', row.createBy);
+                        var actions = [];
+                        if ($.common.isNotEmpty(row.createBy) && row.createBy === userName&&row.status==1){
+                            actions.push('<a class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="submitEvaluation(\'' + row.id + '\')"><i class="fa fa-check"></i>提交</a> ');
+                            actions.push('<a class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="deleteEvaluation(\'' + row.id + '\')"><i class="fa fa-remove"></i>删除</a> ');
+                            return actions.join('');
+                        }else {
+                            return '-';
+                        }
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+    function submitEvaluation(id) {
+        layer.confirm('确定要提交该评价吗？', {
+            btn: ['确定','取消'], //按钮
+            icon: 3
+        }, function(index){
+            layer.close(index); //关闭确认框
+            $.ajax({
+                url: ctx + "staff-service/self-evaluation/submit/" + id,
+                type: "POST",
+                success: function(res){
+                    if(res.code === 0){
+                        $.modal.msgSuccess("提交成功！");
+                        $("#bootstrap-table").bootstrapTable('refresh'); //刷新表格
+                    } else {
+                        $.modal.msgError(res.msg);
+                    }
+                },
+                error: function(){
+                    $.modal.msgError("提交失败，请稍后重试！");
+                }
+            });
+        });
+    }
+    function deleteEvaluation(id) {
+        layer.confirm('确定要删除该评价吗？', {
+            btn: ['确定','取消'], //按钮
+            icon: 3
+        }, function(index){
+            layer.close(index); //关闭确认框
+            $.ajax({
+                url: ctx + "staff-service/self-evaluation/remove/" + id,
+                type: "POST",
+                success: function(res){
+                    if(res.code === 0){
+                        $.modal.msgSuccess("删除成功！");
+                        $("#bootstrap-table").bootstrapTable('refresh'); //刷新表格
+                    } else {
+                        $.modal.msgError(res.msg);
+                    }
+                },
+                error: function(){
+                    $.modal.msgError("删除失败，请稍后重试！");
+                }
+            });
+        });
+    }
+
+    /* 文件下载 */
+    function handleDownload(fileNames) {
+        window.location.href = ctx + "common/batchDownload?fileName=" + encodeURI(fileNames);
+    }
+</script>
+</body>
+</html>

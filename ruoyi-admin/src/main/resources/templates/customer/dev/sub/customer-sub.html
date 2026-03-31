@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('客户子表')"/>
+    <th:block th:include="include :: datetimepicker-css"/>
+    <style type="text/css">
+        table label.error {
+            position: inherit;
+        }
+
+        select + label.error {
+            z-index: 1;
+            right: 40px;
+        }
+
+        .hide-column {
+            display: none;
+        }
+
+        .note {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body class="gray-bg">
+<div class="main-content">
+    <form id="form-detail" class="form-horizontal" th:object="${customer}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <h4 class="form-header h4">[[*{customerName}]]</h4>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">客户名称：</label>
+                    <div class="col-sm-8">
+                        <input readonly th:field="*{customerName}" placeholder="客户名称" class="form-control"
+                               type="text">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">电话：</label>
+                    <div class="col-sm-8">
+                        <input readonly th:field="*{phone}"
+                               placeholder="电话" class="form-control" type="text"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">微信：</label>
+                    <div class="col-sm-8">
+                        <input readonly th:field="*{wechat}" placeholder="微信"
+                               class="form-control" type="text"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label ">邮箱：</label>
+                    <div class="col-sm-8">
+                        <input readonly th:field="*{email}" placeholder="邮箱"
+                               class="form-control" type="text"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">渠道：</label>
+                    <div class="col-sm-8">
+                        <textarea readonly th:field="*{channel}" placeholder="渠道"
+                                  class="form-control"> </textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label ">资方：</label>
+                    <div class="col-sm-8">
+                        <textarea readonly th:field="*{capital}" placeholder="资方"
+                                  class="form-control"> </textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label ">模式：</label>
+                    <div class="col-sm-8">
+                        <input readonly th:field="*{mode}" placeholder="模式" class="form-control"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">来源：</label>
+                    <div class="col-sm-8">
+                        <input readonly th:value="${dataSource == 1?'网页':'系统'}" placeholder="来源" class="form-control"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="form-header h4">沟通过程</h4>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="btn-group-sm" id="toolbar" role="group">
+                    <a class="btn btn-success" onclick="$.operate.add()">
+                        <i class="fa fa-plus"></i> 添加
+                    </a>
+                    <a class="btn btn-primary single disabled" onclick="$.operate.edit()">
+                        <i class="fa fa-edit"></i> 修改
+                    </a>
+                    <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()">
+                        <i class="fa fa-remove"></i> 删除
+                    </a>
+                    <a class="btn btn-warning" onclick="$.table.exportExcel()">
+                        <i class="fa fa-download"></i> 导出
+                    </a>
+                </div>
+                <div class="col-sm-12 select-table table-striped">
+                    <table id="bootstrap-table"></table>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div class="row">
+    <div class="col-sm-offset-5 col-sm-10">
+        <button type="button" class="btn btn-sm btn-danger" onclick="closePage()"><i class="fa fa-reply-all"></i>关 闭
+        </button>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: datetimepicker-js"/>
+<script th:src="@{/js/jquery.tmpl.js}"></script>
+<script th:src="@{/js/axios.min.js}"></script>
+<script th:inline="javascript">
+    const customerId = /*[[${id}]]*/undefined;
+    const prefix = ctx + "customer/dev/sub";
+    $(function () {
+        let options = {
+            url: prefix + `/list`,
+            createUrl: prefix + `/add?customerId=${customerId}`,
+            updateUrl: prefix + "/edit/{id}",
+            removeUrl: prefix + "/remove",
+            exportUrl: prefix + "/export",
+            // uniqueId: 'technical_agreement_table',
+            modalName: "客户子表",
+            method: 'post',
+            pagination: false,
+            showSearch: false,
+            // showRefresh: true,
+            // showToggle: false,
+            // showColumns: false,
+            onLoadSuccess: function (data) {
+                // hideOperation(data);
+            },
+            sidePagination: "server",
+            contentType: "application/x-www-form-urlencoded",
+            queryParams: {
+                'customerId': customerId
+            },
+            columns: [
+                {
+                    checkbox: true,
+                },
+                {
+                    field: 'id',
+                    align: 'center',
+                    title: '序号',
+                    visible: false,
+                },
+                {
+                    field: 'wayOfVision',
+                    align: 'center',
+                    title: '访问方式',
+                    formatter: function (value, row, index) {
+                        let planText;
+                        switch (value){
+                            case 'PHONE':
+                                planText = '电话';
+                                break;
+                            case 'OFFLINE':
+                                planText = '线下拜访';
+                                break;
+                            case 'WECHAT':
+                                planText = '微信沟通';
+                                break;
+                            case 'OTHER':
+                            default:
+                                planText = '其他';
+                        }
+                        return `<span>${planText}</span>`;
+                    }
+                },
+                {
+                    field: 'progress',
+                    align: 'center',
+                    title: '进展情况',
+                },
+                {
+                    field: 'communicationTime',
+                    align: 'center',
+                    title: '沟通时间',
+                },
+                {
+                    field: 'note',
+                    align: 'center',
+                    title: '备注',
+                },
+                {
+                    field: 'createTime',
+                    align: 'center',
+                    title: '创建时间',
+                    visible: false
+                }
+            ]
+        };
+        $.table.init(options);
+    });
+
+    function addRow() {
+        $.modal.confirm("确定要新增一项?", function () {
+            $.modal.open("新增" + window.table.options.modalName, prefix+`/add?customerId=${customerId}`, undefined, undefined);
+        });
+    }
+
+    function closePage() {
+        let index = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(index); // 关闭当前页
+        parent.location.reload();
+    }
+
+    function initDetailTable() {
+        $('#bootstrap-table').bootstrapTable('refresh')
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+	<th:block th:include="include :: header('新增请款统计')" />
+	<th:block th:include="include :: bootstrap-fileinput-css" />
+</head>
+<body class="">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<form class="form-horizontal m" id="config-add">
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">请款名称：</label>
+				<div class="col-sm-6">
+					<input class="form-control" type="text" name="configName">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">所属项目：</label>
+				<div class="col-sm-6">
+					<select class="form-control" name="projectCode" onchange="initContractName()">
+						<option value="">请选择</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label is-required">关联合同：</label>
+				<div class="col-sm-6">
+					<select class="form-control" name="contractName">
+						<option value="">请选择</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label ">关联技术协议：</label>
+				<div class="col-sm-6">
+					<select class="form-control" name="title">
+						<option value="">请选择</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">请款详情：</label>
+				<div class="col-sm-6">
+					<textarea name="configDetail" maxlength="500" class="form-control" rows="5"></textarea>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<th:block th:include="include :: footer" />
+	<th:block th:include="include :: bootstrap-fileinput-js" />
+	<script type="text/javascript">
+		var prefix = ctx + "please-money/config";
+
+		$(function() {
+			initProjectCode();
+		});
+
+		$("#config-add").validate({
+			rules:{
+				configName:{
+					required:true
+				},
+				projectCode:{
+					required:true
+				},
+				contractName:{
+					required:true
+				}
+			},
+		});
+
+		function submitHandler() {
+			if ($.validate.form()) {
+				$.operate.save(prefix + "/config-add", $('#config-add').serialize());
+			}
+	    }
+
+		// 初始化项目下拉框
+		function initProjectCode(){
+			$.ajax({
+				url: ctx + "project/statis/list",
+				type: "post",
+				dataType: "json",
+				data: {
+					"status": 2,
+					"pageNum": 1,
+					"pageSize": 1000
+				},
+				success: function(result) {
+					if (result.code == web_status.SUCCESS) {
+						var data = result.rows;
+						for (var i = 0; i < data.length; i++) {
+							$("select[name='projectCode']").append(
+									"<option value='" + data[i].projectCode + "'>" +  data[i].projectName + "</option>");
+						}
+					}
+				}
+			})
+		}
+
+		// 初始化合同下拉框
+		function initContractName(){
+			$.ajax({
+				url: ctx + "contract/contract/list",
+				type: "post",
+				dataType: "json",
+				data: {
+					"status": 3,
+					"pageNum": 1,
+					"pageSize": 1000,
+					"projectCode": $("select[name='projectCode']").val()
+				},
+				success: function(result) {
+					if (result.code == web_status.SUCCESS) {
+						$("select[name='contractName']").empty();
+						var data = result.rows;
+						for (var i = 0; i < data.length; i++){
+							$("select[name='contractName']").append(
+									"<option value='" + data[i].contractName + "'>" +  data[i].contractName + "</option>");
+						}
+					}else {
+						$.modal.msgWarning("初始化合同下拉框失败");
+					}
+				}
+			})
+			initTitle();
+		}
+
+		// 初始化技术附件
+		function initTitle(){
+			$.ajax({
+				url: ctx + "contract/technical-agreement/list",
+				type: "post",
+				dataType: "json",
+				data: {
+					"status": 3,
+					"pageNum": 1,
+					"pageSize": 1000,
+					"projectCode": $("select[name='projectCode']").val()
+				},
+				success: function(result) {
+					if (result.code == web_status.SUCCESS) {
+						$("select[name='title']").empty();
+						var data = result.rows;
+						for (var i = 0; i < data.length; i++){
+							$("select[name='title']").append(
+									"<option value='" + data[i].title + "'>" +  data[i].title + "</option>");
+						}
+					}else {
+						$.modal.msgWarning("初始化技术附件下拉框失败");
+					}
+				}
+			})
+		}
+	</script>
+</body>
+</html>

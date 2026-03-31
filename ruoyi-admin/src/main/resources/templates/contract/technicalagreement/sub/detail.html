@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('主子表提交')"/>
+    <th:block th:include="include :: datetimepicker-css"/>
+    <style type="text/css">
+        table label.error {
+            position: inherit;
+        }
+
+        select + label.error {
+            z-index: 1;
+            right: 40px;
+        }
+
+        .hide-column {
+            display: none;
+        }
+
+        .note {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body class="gray-bg">
+<div class="main-content">
+    <form id="form-add" class="form-horizontal" th:object="${technicalAgreement}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <h4 class="form-header h4">[[*{title}]]</h4>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label is-required">协议名称：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="title" th:field="*{title}" placeholder="协议名称" class="form-control"
+                               type="text"
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label is-required">技术协议编号：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="technicalAgreementCode" th:field="*{technicalAgreementCode}"
+                               placeholder="技术协议编号" class="form-control" type="text"
+                               required/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label is-required">所属项目编号：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="projectCode" th:field="*{projectCode}" placeholder="所属项目编号"
+                               class="form-control" type="text"
+                               required/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label ">所属项目名称：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="projectName" th:field="*{projectName}" placeholder="所属项目名称"
+                               class="form-control" type="text" maxlength="30"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label is-required">协议描述：</label>
+                    <div class="col-sm-8">
+                        <textarea readonly name="description" th:field="*{description}" placeholder="协议协议描述"
+                                  class="form-control" required> </textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label ">备注：</label>
+                    <div class="col-sm-8">
+                        <textarea readonly name="note" th:field="*{note}" placeholder="备注"
+                                  class="form-control"> </textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label ">发起人：</label>
+                    <div class="col-sm-8">
+                        <input readonly name="createBy" th:field="*{createBy}" placeholder="发起人" class="form-control"
+                               type="text" maxlength="30"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h4 class="form-header h4">技术协议处理流程</h4>
+        <div class="row">
+            <div class="col-sm-12">
+                <div th:if="${technicalAgreement.status != 3}">
+                    <button id="addButton" type="button" class="btn btn-white btn-sm" onclick="antiShake(addRow)">
+                        <i class="fa fa-plus"> 新增流程</i>
+                    </button>
+                    <button type="button" class="btn btn-white btn-sm" onclick="overProcess()">
+                        <i class="fa fa-minus"> 结束流程</i>
+                    </button>
+                </div>
+                <div class="col-sm-12 select-table table-striped">
+                    <table id="bootstrap-table"></table>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div class="row">
+    <div class="col-sm-offset-5 col-sm-10">
+        <button type="button" class="btn btn-sm btn-danger" onclick="closePage()"><i class="fa fa-reply-all"></i>关 闭
+        </button>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: datetimepicker-js"/>
+<script th:src="@{/js/jquery.tmpl.js}"></script>
+<script th:src="@{/js/axios.min.js}"></script>
+<script th:inline="javascript">
+    const prefix = ctx + "contract/technical-agreement/sub";
+    const axiosPrefix = '/project-flow/contract/technical-agreement';
+    const agreementId = [(${technicalAgreement.id}
+    )]
+    let mainStatus = [(${technicalAgreement.status}
+    )]
+    const agreementStatus = {
+        ID_PREFIX: "agreementStatusShowLabel",
+        UNSUBMIT: '1',
+        PROCESSING: '2',
+        COMPLETED: '3',
+        DEFAULT: 'default',
+        '1': {textContent: "未提交", classList: ["badge", "badge-danger"]},
+        '2': {textContent: "处理中", classList: ["badge", "badge-warning"]},
+        '3': {textContent: "完成", classList: ["badge", "badge-primary"]},
+        'default': {textContent: "未知", classList: ["badge", "badge-primary"]},
+        statusNum: 3,
+    }
+    const agreementSubStatus = {
+        ID_PREFIX: "agreementSubStatusShowLabel",
+        UNSUBMIT: '1',
+        PROCESSING: '2',
+        COMPLETED: '3',
+        REJECTED: '4',
+        DEFAULT: 'default',
+        '1': {textContent: "未提交", classList: ["badge", "badge-danger"]},
+        '2': {textContent: "处理中", classList: ["badge", "badge-warning"]},
+        '3': {textContent: "已处理", classList: ["badge", "badge-primary"]},
+        '4': {textContent: "已驳回", classList: ["badge", "badge-default"]},
+        'default': {textContent: "未知", classList: ["badge", "badge-primary"]},
+        statusNum: 4,
+    }
+    const classList = {
+        badge: 'badge',
+        primary: 'badge-primary',
+        warning: 'badge-warning',
+        success: 'badge-success',
+        danger: 'badge-danger'
+    }
+    $(function () {
+        let options = {
+            url: prefix + "/list",
+            createUrl: prefix + "/add/{id}",
+            updateUrl: prefix + "/submit/{id}",
+            removeUrl: prefix + "/remove",
+            exportUrl: prefix + "/export",
+            // uniqueId: 'technical_agreement_table',
+            modalName: "技术协议子表",
+            method: 'post',
+            pagination: false,
+            showSearch: false,
+            // showRefresh: true,
+            // showToggle: false,
+            // showColumns: false,
+            onLoadSuccess: function (data) {
+                // hideOperation(data);
+            },
+            sidePagination: "server",
+            contentType: "application/x-www-form-urlencoded",
+            queryParams: {
+                technicalAgreementId: agreementId,
+            },
+            columns: [
+                {
+                    field: 'id',
+                    align: 'center',
+                    title: '序号',
+                    visible: false
+                },
+                {
+                    field: 'createBy',
+                    align: 'center',
+                    title: '发起人',
+                },
+                {
+                    field: 'createPost',
+                    align: 'center',
+                    title: '发起人所属岗位',
+                },
+                {
+                    field: 'createDept',
+                    align: 'center',
+                    title: '发起人所属部门',
+                },
+                {
+                    field: 'handleBy',
+                    align: 'center',
+                    title: '处理人',
+                },
+                {
+                    field: 'handlePost',
+                    align: 'center',
+                    title: '处理人所属岗位',
+                },
+                {
+                    field: 'handleDept',
+                    align: 'center',
+                    title: '处理人所属部门',
+                },
+                {
+                    field: 'initiateTime',
+                    align: 'center',
+                    title: '发起时间',
+                },
+                {
+                    field: 'initiateNote',
+                    align: 'center',
+                    title: '发起意见',
+                    formatter: function (value, row, index) {
+                        if ($.common.isEmpty(value)) {
+                            value = '-';
+                        }
+                        return `<span class="note" title="${value}">${value}</span>`
+                    }
+                },
+                {
+                    field: 'handleTime',
+                    align: 'center',
+                    title: '处理时间',
+                },
+                {
+                    field: 'handleNote',
+                    align: 'center',
+                    title: '处理意见',
+                    formatter: function (value, row, index) {
+                        if ($.common.isEmpty(value)) {
+                            value = '-';
+                        }
+                        return `<span class="note" title="${value}">${value}</span>`
+                    }
+                },
+                {
+                    field: 'fileNames',
+                    align: 'center',
+                    title: '文件访问路径',
+                    visible: false,
+                },
+                {
+                    field: 'status',
+                    title: '状态',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        // 强制转换为字符串并检查键是否存在
+                        value = String(value);
+                        if (!agreementSubStatus.hasOwnProperty(value)) {
+                            value = agreementSubStatus.DEFAULT;
+                        }
+                        return `<span id="${agreementSubStatus.ID_PREFIX}-${row.id}"  class="${agreementSubStatus[value].classList.join(' ')}">${agreementSubStatus[value].textContent}</span>`;
+                    }
+                },
+                {
+                    title: '文件',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        const actions = [];
+                        // 检查是否有文件数据，使用 row.fileNames 字段
+                        if ($.common.isNotEmpty(row.fileNames) && row.fileNames.trim() !== '') {
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileView(\'' + row.fileNames + '\')" title="文件预览"><i class="fa fa-folder-open"></i>预览</a> ');
+                            actions.push('<a class="btn btn-file" onclick="$.table.fileDownload(\'' + row.fileNames + '\')" title="文件下载"><i class="fa fa-download"></i>下载</a>');
+                        } else {
+                            actions.push('<span class="text-muted">无文件</span>');
+                        }
+                        return actions.join('');
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        let actions = [];
+                        if (row.status === 1) { // 未提交状态
+                            actions.push(`<a class="btn btn-primary btn-xs" onclick="submitProcess(${row.id})" title="发起"><i class="fa fa-paper-plane"></i>发起</a>`);
+                        } else if (row.status === 2) { // 待处理状态
+                            actions.push(`<a class="btn btn-success btn-xs" onclick="handleProcess(${row.id})" title="处理"><i class="fa fa-check"></i>处理</a>`);
+                        }
+                        return actions.join('');
+                    }
+                }
+            ]
+        };
+        $.table.init(options);
+    });
+    $("#form-add").validate({
+        focusCleanup: true
+    });
+
+    function hideOperation(tableData) {
+        //查询主表状态信息
+        let url = axiosPrefix + `/agreement/${agreementId}`;
+        axios.get(url).then(
+            response => {
+                if (response.data.code === 0) {//if1 begin
+                    let result = response.data.data;
+                    mainStatus = result.status;
+                    if (String(mainStatus) === agreementSubStatus.COMPLETED) {
+                        $('.operation').hide();
+                    } else if (tableData.total > 0) {//else1 begin
+                        let rows = tableData.rows
+                        let submitPermission = rows[0].submitPermission;
+                        let handlePermission = rows[0].handlePermission;
+                        let dom = undefined;
+                        for (let key in submitPermission) {//for begin
+                            dom = $(`#submit-operation-${key}`);
+                            if (submitPermission[key] && !$.common.isEmpty(dom)) {//if2 begin
+                                dom.show();
+                            }//if2 end
+                            dom = $(`#handle-operation-${key}`);
+                            if (handlePermission[key] && !$.common.isEmpty(dom)) {
+                                dom.show();
+                            }
+                        }//for end
+                    }//else1 end
+
+                }//if1 end
+                else {
+                    console.error(`修改失败:`, response);
+                    if (response.data['msg'])
+                        $.modal.msgError(`修改失败:${response.data.msg}`);
+                }
+            }//response
+
+        ).catch(
+            error => {
+                console.error(`操作失败!${error}`);
+                $.modal.msgError("操作失败!");
+            }
+        );
+    }
+
+    function addRow() {
+        $.modal.confirm("确定要新增一项?", function () {
+            // let count = $("#" + table.options.id).bootstrapTable('getData').length;
+            const url = axiosPrefix + `/sub/add/${agreementId}`;
+            axios.get(url).then(
+                response => {
+                    if (response.data.code === 0) {
+                        $("button[name='refresh']").click();
+                        // hideOperation();
+                    } else {
+                        console.error(`修改失败:`, response);
+                        if (response.data['msg'])
+                            $.modal.msgError(`修改失败:${response.data.msg}`);
+                    }
+                }
+            ).catch(
+                error => {
+                    console.error(`操作失败!${error}`);
+                    $.modal.msgError("操作失败!");
+                }
+            );
+        });
+    }
+
+    function downloadFiles(fileNames) {
+        $.modal.confirm("确认要下载文件吗?", function () {
+            window.location.href = ctx + "common/batchDownload?fileName=" + encodeURI(fileNames);
+        });
+    }
+
+    function overProcess() {
+        // var count = $("#" + table.options.id).bootstrapTable('getData').length;
+        $.modal.confirm("确定要结束流程？", () => {
+            const prefix = "/project-flow/contract/technical-agreement";
+            axios.put(prefix + `/over/${agreementId}`).then(function (response) {
+                if (response.data.code === 0) {
+                    $("button[name='refresh']").click();//该方法禁止用在页面加载完成后立刻触发的函数中
+                    $.modal.msgSuccess("操作成功");
+                    setTimeout(closePage, 750);
+                } else {
+                    console.error('修改失败:', response);
+                    if (response.data['msg'])
+                        $.modal.msgError(`修改失败:${response.data.msg}`);
+                }
+            }).catch(function (error) {
+                console.error(`请求出错:${error}`);
+                $.modal.msgError("操作失败!");
+            });
+        });
+    }
+
+    function handleProcess(id) {
+        window.table.set();
+        let url = prefix + `/handle/${id}`;
+        $.modal.open("处理" + window.table.options.modalName, url, undefined, undefined);
+    }
+
+    function submitProcess(id) {
+        window.table.set();
+        let url = prefix + `/submit/${id}`;
+        $.modal.open("提交" + window.table.options.modalName, url, undefined, undefined);
+    }
+
+    function closePage() {
+        let index = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(index); // 关闭当前页
+        parent.location.reload();
+    }
+
+    function initDetailTable() {
+        $('#bootstrap-table').bootstrapTable('refresh')
+    }
+</script>
+</body>
+</html>
