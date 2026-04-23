@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('新增企业沟通记录')"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-enterprise-sub-add" method="post">
+        <input type="hidden" name="enterpriseId" th:value="${enterpriseId}"/>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">访问方式：</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="wayOfVision" required>
+                    <option value="电话">电话</option>
+                    <option value="线下拜访">线下拜访</option>
+                    <option value="微信沟通">微信沟通</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">进展情况：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" name="progress" required></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">沟通时间：</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="communicationTime" required placeholder="yyyy-MM-dd">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">备注信息：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" name="note"></textarea>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+<th:block th:include="include :: footer"/>
+<script type="text/javascript">
+    var prefix = ctx + "customer/dev/enterprise-sub";
+
+    $("#form-enterprise-sub-add").validate({
+        focusCleanup: true,
+        rules: {
+            wayOfVision: {
+                required: true
+            },
+            progress: {
+                required: true
+            },
+            communicationTime: {
+                required: true
+            }
+        },
+        messages: {
+            wayOfVision: {
+                required: "请选择访问方式"
+            },
+            progress: {
+                required: "请输入进展情况"
+            },
+            communicationTime: {
+                required: "请选择沟通时间"
+            }
+        },
+        errorElement: "span",
+        errorClass: "help-block text-danger",
+        highlight: function(element) {
+            $(element).closest('.form-group').addClass('has-error');
+        },
+        unhighlight: function(element) {
+            $(element).closest('.form-group').removeClass('has-error');
+        },
+        errorPlacement: function(error, element) {
+            error.appendTo(element.closest('.col-sm-8'));
+        }
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/add", $('#form-enterprise-sub-add').serialize());
+        }
+    }
+</script>
+</html>

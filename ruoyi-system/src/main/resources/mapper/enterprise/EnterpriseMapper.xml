@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.enterprise.mapper.EnterpriseMapper">
+    <resultMap id="EnterpriseResult" type="Enterprise">
+        <result property="id" column="id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="deleteFlag" column="delete_flag"/>
+        <result property="enterpriseName" column="enterprise_name"/>
+        <result property="region" column="region"/>
+        <result property="establishmentDate" column="establishment_date"/>
+        <result property="registeredCapital" column="registered_capital"/>
+        <result property="paidInCapital" column="paid_in_capital"/>
+        <result property="employeeCount" column="employee_count"/>
+        <result property="product" column="product"/>
+        <result property="website" column="website"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="unifiedSocialCreditCode" column="unified_social_credit_code"/>
+        <result property="legalRepresentative" column="legal_representative"/>
+        <result property="address" column="address"/>
+        <result property="businessScope" column="business_scope"/>
+        <result property="devStatus" column="dev_status"/>
+    </resultMap>
+
+    <sql id="selectEnterpriseInfo">
+        <trim suffixOverrides=",">
+            t_enterprise.enterprise_name AS enterprise_name,
+            t_enterprise.region AS region,
+            t_enterprise.establishment_date AS establishment_date,
+            t_enterprise.registered_capital AS registered_capital,
+            t_enterprise.paid_in_capital AS paid_in_capital,
+            t_enterprise.employee_count AS employee_count,
+            t_enterprise.product AS product,
+            t_enterprise.website AS website,
+            t_enterprise.contact_phone AS contact_phone,
+            t_enterprise.create_by AS create_by,
+            t_enterprise.data_source AS data_source,
+            t_enterprise.status AS status,
+            t_enterprise.detail AS detail,
+            t_enterprise.dev_status AS dev_status
+        </trim>
+    </sql>
+
+    <sql id="selectEnterpriseVo">
+        select id,
+               create_by,
+               update_by,
+               create_time,
+               update_time,
+               delete_flag,
+               enterprise_name,
+               region,
+               establishment_date,
+               registered_capital,
+               paid_in_capital,
+               employee_count,
+               product,
+               website,
+               contact_phone,
+               data_source,
+               status,
+               detail,
+               dev_status
+        from t_enterprise
+    </sql>
+
+    <select id="selectEnterpriseById" parameterType="Long" resultMap="EnterpriseResult">
+        <include refid="selectEnterpriseVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectEnterpriseList" parameterType="Enterprise" resultMap="EnterpriseResult">
+        select
+        tc.id,
+        tc.create_by,
+        tc.update_by,
+        tc.create_time,
+        tc.update_time,
+        tc.delete_flag,
+        tc.enterprise_name,
+        tc.region,
+        tc.establishment_date,
+        tc.registered_capital,
+        tc.paid_in_capital,
+        tc.employee_count,
+        tc.product,
+        tc.website,
+        tc.contact_phone,
+        tc.unified_social_credit_code,
+        tc.legal_representative,
+        tc.address,
+        tc.business_scope,
+        tc.dev_status,
+        tcs_progress.progress
+        from t_enterprise tc
+        left join (
+            select
+            enterprise_id,
+            progress,
+            row_number() over (partition by enterprise_id order by communication_time desc) as rn
+            from t_enterprise_sub tcs
+            where tcs.delete_flag = 0
+        ) tcs_progress on tc.id = tcs_progress.enterprise_id and tcs_progress.rn = 1
+        <where>
+            tc.delete_flag = 0
+            <if test="enterpriseName != null and enterpriseName != '' ">and tc.enterprise_name like concat('%', #{enterpriseName}, '%')</if>
+            <if test="createBy != null and createBy != '' ">and tc.create_by = #{createBy}</if>
+            <if test="region != null">and tc.region like concat('%', #{region}, '%')</if>
+            <if test="contactPhone != null">and tc.contact_phone like concat('%', #{contactPhone}, '%')</if>
+            <if test="product != null">and tc.product like concat('%', #{product}, '%')</if>
+            <if test="devStatus != null">and tc.dev_status = #{devStatus}</if>
+            <if test="params.beginTime != null and params.beginTime != ''">AND tc.create_time >= #{params.beginTime}</if>
+            <if test="params.endTime != null and params.endTime != ''">AND tc.create_time &lt;= #{params.endTime}</if>
+        </where>
+        ORDER BY tc.create_time DESC
+    </select>
+
+    <insert id="insertEnterprise" parameterType="Enterprise" useGeneratedKeys="true" keyProperty="id">
+        insert into t_enterprise
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="deleteFlag != null">delete_flag,</if>
+            <if test="enterpriseName != null">enterprise_name,</if>
+            <if test="region != null">region,</if>
+            <if test="establishmentDate != null">establishment_date,</if>
+            <if test="registeredCapital != null">registered_capital,</if>
+            <if test="paidInCapital != null">paid_in_capital,</if>
+            <if test="employeeCount != null">employee_count,</if>
+            <if test="product != null">product,</if>
+            <if test="website != null">website,</if>
+            <if test="contactPhone != null">contact_phone,</if>
+            <if test="dataSource != null">data_source,</if>
+            <if test="status != null">status,</if>
+            <if test="detail != null">detail,</if>
+            <if test="devStatus != null">dev_status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="deleteFlag != null">#{deleteFlag},</if>
+            <if test="enterpriseName != null">#{enterpriseName},</if>
+            <if test="region != null">#{region},</if>
+            <if test="establishmentDate != null">#{establishmentDate},</if>
+            <if test="registeredCapital != null">#{registeredCapital},</if>
+            <if test="paidInCapital != null">#{paidInCapital},</if>
+            <if test="employeeCount != null">#{employeeCount},</if>
+            <if test="product != null">#{product},</if>
+            <if test="website != null">#{website},</if>
+            <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="dataSource != null">#{dataSource},</if>
+            <if test="status != null">#{status},</if>
+            <if test="detail != null">#{detail},</if>
+            <if test="devStatus != null">#{devStatus},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEnterprise" parameterType="Enterprise">
+        update t_enterprise
+        <set>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="deleteFlag != null">delete_flag = #{deleteFlag},</if>
+            <if test="enterpriseName != null">enterprise_name = #{enterpriseName},</if>
+            <if test="region != null">region = #{region},</if>
+            <if test="establishmentDate != null">establishment_date = #{establishmentDate},</if>
+            <if test="registeredCapital != null">registered_capital = #{registeredCapital},</if>
+            <if test="paidInCapital != null">paid_in_capital = #{paidInCapital},</if>
+            <if test="employeeCount != null">employee_count = #{employeeCount},</if>
+            <if test="product != null">product = #{product},</if>
+            <if test="website != null">website = #{website},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="dataSource != null">data_source = #{dataSource},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="detail != null">detail = #{detail},</if>
+            <if test="devStatus != null">dev_status = #{devStatus},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteEnterpriseById" parameterType="Long">
+        update t_enterprise
+        set delete_flag = 1,
+            update_by=#{loginName}
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteEnterpriseByIds" parameterType="String">
+        update t_enterprise set delete_flag = 1,update_time = sysdate()
+        where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectEnterpriseExportList" resultType="com.ruoyi.enterprise.domain.EnterpriseExport">
+        WITH idList AS (
+            SELECT id FROM t_enterprise
+            <where>
+                delete_flag = 0
+                <if test="enterpriseName != null">and enterprise_name like concat('%', #{enterpriseName}, '%')</if>
+                <if test="region != null">and region like concat('%', #{region}, '%')</if>
+                <if test="contactPhone != null">and contact_phone like concat('%', #{contactPhone}, '%')</if>
+                <if test="product != null">and product like concat('%', #{product}, '%')</if>
+                <if test="devStatus != null">and dev_status = #{devStatus}</if>
+                <if test="params.beginTime != null and params.beginTime != ''">AND create_time >= #{params.beginTime}</if>
+                <if test="params.endTime != null and params.endTime != ''">AND create_time &lt;= #{params.endTime}</if>
+            </where>
+        ),
+        latest_enterprise_sub AS (
+            SELECT t1.enterprise_id,t1.progress
+            FROM t_enterprise_sub t1
+            INNER JOIN (
+                SELECT enterprise_id, MAX(create_time) as last_create_time FROM t_enterprise_sub
+                WHERE delete_flag = 0
+                GROUP BY enterprise_id
+            ) t2 ON t1.enterprise_id = t2.enterprise_id AND t1.create_time= t2.last_create_time
+            WHERE t1.delete_flag = 0
+        )
+
+        SELECT
+        st.progress as progress,
+        <include refid="selectEnterpriseInfo"/>
+        FROM t_enterprise
+        LEFT JOIN
+        latest_enterprise_sub as st
+        ON t_enterprise.id =
+        st.enterprise_id
+        WHERE t_enterprise.id in (select id from idList)
+    </select>
+</mapper>
