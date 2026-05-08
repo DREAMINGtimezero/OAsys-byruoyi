@@ -19,8 +19,8 @@ public class Customer extends BaseEntity {
 
     /** 删除标记：0=未删除，1=已删除 */
     private Integer deleteFlag;
-    /** 客户名称 */
-    @Excel(name = "客户名称")
+    /** 客户名称（联系人） */
+    @Excel(name = "联系人")
     private String customerName;
     /** 手机号 */
     @Excel(name = "手机号")
@@ -34,8 +34,11 @@ public class Customer extends BaseEntity {
     /** 渠道 */
     @Excel(name = "渠道")
     private String channel;
-    /** 资方 */
-    @Excel(name = "资方")
+   /** 资方类型 */
+    @Excel(name = "资方类型", readConverterExp = "1=耐火材料,2=钢铁企业,3=设计院,4=其他")
+    private Integer capitalType;
+    /** 资方（企业名称） */
+    @Excel(name = "企业名称")
     private String capital;
     /** 性质 */
     @Excel(name = "性质")

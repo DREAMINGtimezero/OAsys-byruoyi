@@ -59,13 +59,23 @@
                     <ul>
                         <li style="display: flex; gap: 20px; align-items: center;">
                             <div style="display: flex; align-items: center; flex: 1;">
-                                <label style="min-width: 100px;">客户名称：</label>
+                                <label style="min-width: 100px;">联系人：</label>
                                 <input type="text" name="customerName" style="flex: 1;"/>
                             </div>
                             <div style="display: flex; align-items: center; flex: 1;">
-                                <label style="min-width: 100px;">资方：</label>
+                                <label style="min-width: 100px;">企业名称：</label>
                                 <input type="text" name="capital" style="flex: 1;"/>
                             </div>
+                        </li>
+                        <li>
+                            <label>资方类型：</label>
+                            <select name="capitalType">
+                                <option value="">所有</option>
+                                <option value="1">耐火材料</option>
+                                <option value="2">钢铁企业</option>
+                                <option value="3">设计院</option>
+                                <option value="4">其他</option>
+                            </select>
                         </li>
                         <li>
                             <label>来源：</label>
@@ -184,6 +194,15 @@
                     field: 'channel',   // 对应 channel
                     title: '渠道',
                     align: 'center'
+                },
+                {
+                    field: 'capitalType',
+                    title: '资方类型',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var types = {"1": "耐火材料", "2": "钢铁企业", "3": "设计院", "4": "其他"};
+                        return types[value] || "-";
+                    }
                 },
                 {
                     field: 'capital',   // 对应 capital

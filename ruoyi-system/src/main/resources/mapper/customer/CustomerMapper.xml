@@ -15,6 +15,7 @@
         <result property="wechat" column="wechat"/>
         <result property="email" column="email"/>
         <result property="channel" column="channel"/>
+        <result property="capitalType" column="capital_type"/>
         <result property="capital" column="capital"/>
         <result property="mode" column="mode"/>
         <result property="dataSource" column="data_source"/>
@@ -46,6 +47,7 @@
                wechat,
                email,
                channel,
+               capital_type,
                capital,
                mode,
                channel,
@@ -71,6 +73,7 @@
         tc.wechat,
         tc.email,
         tc.channel,
+        tc.capital_type, 
         tc.capital,
         tc.mode,
         tc.data_source,
@@ -94,6 +97,7 @@
             <if test="wechat != null">and tc.wechat like concat('%', #{wechat}, '%')</if>
             <if test="email != null">and tc.email like concat('%', #{email}, '%')</if>
             <if test="channel != null">and tc.channel like concat('%', #{channel}, '%')</if>
+            <if test="capitalType != null">and tc.capital_type = #{capitalType}</if>
             <if test="capital != null">and tc.capital like concat('%', #{capital}, '%')</if>
             <if test="mode != null">and tc.mode like concat('%', #{mode}, '%')</if>
             <if test="dataSource != null">and tc.data_source = #{dataSource}</if>
@@ -116,6 +120,7 @@
             <if test="wechat != null">wechat,</if>
             <if test="email != null">email,</if>
             <if test="channel != null">channel,</if>
+            <if test="capitalType != null">capital_type,</if>
             <if test="capital != null">capital,</if>
             <if test="mode != null">mode,</if>
             <if test="dataSource != null">data_source,</if>
@@ -132,6 +137,7 @@
             <if test="wechat != null">#{wechat},</if>
             <if test="email != null">#{email},</if>
             <if test="channel != null">#{channel},</if>
+            <if test="capitalType != null">#{capitalType},</if>
             <if test="capital != null">#{capital},</if>
             <if test="mode != null">#{mode},</if>
             <if test="dataSource != null">#{dataSource},</if>
@@ -151,6 +157,7 @@
             <if test="wechat != null">wechat = #{wechat},</if>
             <if test="email != null">email = #{email},</if>
             <if test="channel != null">channel = #{channel},</if>
+            <if test="capitalType != null">capital_type = #{capitalType},</if>
             <if test="capital != null">capital = #{capital},</if>
             <if test="mode != null">mode = #{mode},</if>
             <if test="dataSource != null">data_source = #{dataSource},</if>
@@ -182,6 +189,7 @@
             <if test="wechat != null">and wechat like concat('%', #{wechat}, '%')</if>
             <if test="email != null">and email like concat('%', #{email}, '%')</if>
             <if test="channel != null">and channel like concat('%', #{channel}, '%')</if>
+            <if test="capitalType != null">and capital_type = #{capitalType}</if>
             <if test="capital != null">and capital like concat('%', #{capital}, '%')</if>
             <if test="mode != null">and mode like concat('%', #{mode}, '%')</if>
             <if test="dataSource != null">and data_source = #{dataSource}</if>
