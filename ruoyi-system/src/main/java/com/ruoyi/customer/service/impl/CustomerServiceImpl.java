@@ -136,5 +136,39 @@ public class CustomerServiceImpl extends BaseServiceImpl implements CustomerServ
     public List<CustomerExport> selectCustomerExportList(Customer customer) {
         return customerMapper.selectCustomerExportList(customer);
     }
+    
+    @Override
+    public String importCustomer(List<Customer> customerList, Boolean isUpdateSupport) {
+        if (customerList == null || customerList.size() == 0) {
+            return "导入客户数据不能为空！";
+        }
+        int successNum = 0;
+        int failureNum = 0;
+        StringBuilder successMsg = new StringBuilder();
+        StringBuilder failureMsg = new StringBuilder();
+        for (Customer customer : customerList) {
+            try {
+                // 1. 设置默认数据来源为系统新增
+                customer.setDataSource(2); 
+                // 2. 设置创建人为当前登录用户
+                customer.setCreateBy(com.ruoyi.common.utils.ShiroUtils.getLoginName());
+                // 3. 执行插入（调用你现有的 insertCustomerFromSys 方法）
+                this.insertCustomerFromSys(customer);
+                successNum++;
+            } catch (Exception e) {
+                failureNum++;
+                failureMsg.append("<br/>" + failureNum + "、客户 " + customer.getCustomerName() + " 导入失败");
+            }
+        }
+        if (failureNum > 0) {
+            failureMsg.insert(0, "导入完成，共 " + failureNum + " 条数据格式不正确：");
+            return failureMsg.toString();
+        } else {
+            successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条。");
+        }
+        return successMsg.toString();
+    }
+
+
 
 }

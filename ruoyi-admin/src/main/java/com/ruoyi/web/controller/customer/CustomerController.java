@@ -19,6 +19,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
 import java.util.List;
 @Slf4j
 @Controller
@@ -138,5 +141,30 @@ public class CustomerController extends BaseController {
     @ResponseBody
     public AjaxResult remove(String ids) {
         return toAjax(customerService.deleteCustomerByIds(ids));
+    }
+
+    /**
+     * 下载导入模板
+     */
+    @GetMapping("/importTemplate")
+    @ResponseBody
+    public AjaxResult importTemplate() {
+     // 手动给一个空列表，通过导出接口生成一个带表头的空表
+        List<Customer> list = new ArrayList<>();
+        ExcelUtil<Customer> util = new ExcelUtil<Customer>(Customer.class);
+        return util.exportExcel(list, "客户导入模板");
+    }
+
+    /**
+     * 导入数据
+     */
+    @Log(title = "客户管理", businessType = BusinessType.IMPORT)
+    @PostMapping("/importData")
+    @ResponseBody
+    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception {
+        ExcelUtil<Customer> util = new ExcelUtil<Customer>(Customer.class);
+        List<Customer> customerList = util.importExcel(file.getInputStream());
+        String message = customerService.importCustomer(customerList, updateSupport);
+        return AjaxResult.success(message);
     }
 }

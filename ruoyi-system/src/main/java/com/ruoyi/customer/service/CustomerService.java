@@ -62,4 +62,15 @@ public interface CustomerService{
     boolean exists(Customer customer);
 
     List<CustomerExport> selectCustomerExportList(Customer customer);
+
+    /**
+     * 导入客户数据
+     * @param customerList 客户数据列表
+     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
+     * @return 结果
+     */
+    String importCustomer(List<Customer> customerList, Boolean isUpdateSupport);
+
+
 }
+
