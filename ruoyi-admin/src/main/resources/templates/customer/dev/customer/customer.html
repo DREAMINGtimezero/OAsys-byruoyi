@@ -166,7 +166,9 @@
             detailUrl: prefix1 + "/detail/{id}",
             removeUrl: prefix + "/remove",
             exportUrl: prefix + "/export",
+            importTemplateUrl: prefix + "/importTemplate",
             updateUrl: prefix + "/edit/{id}",
+            importUrl: prefix + "/importData",
             modalName: "客户",
             //detailView: true,
             columns: [{
@@ -179,7 +181,7 @@
                 },
                 {
                     field: 'customerName',    // 对应 customer_name
-                    title: '客户名称',
+                    title: '联系人',
                     align: 'center'
                 },
                 {
@@ -213,7 +215,7 @@
                 },
                 {
                     field: 'capital',   // 对应 capital
-                    title: '资方',
+                    title: '企业名称',
                     align: 'center'
                 },
                 {
@@ -363,7 +365,6 @@
         $.modal.popupRight('客户详情', prefix1 + '/detail/' + id)
     }
 </script>
-</body>
 
 <script id="importTpl" type="text/template">
     <form enctype="multipart/form-data" class="mt20 mb10">
@@ -380,4 +381,5 @@
     </form>
     </script>
 
+</body>
 </html>

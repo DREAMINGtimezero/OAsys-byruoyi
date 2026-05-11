@@ -149,12 +149,14 @@ public class CustomerController extends BaseController {
     @GetMapping("/importTemplate")
     @ResponseBody
     public AjaxResult importTemplate() {
-     // 手动给一个空列表，通过导出接口生成一个带表头的空表
-        List<Customer> list = new ArrayList<>();
+        System.out.println("----正在请求下载模板----");
+        // 1. 创建一个空的列表
+        List<Customer> list = new java.util.ArrayList<>();
+        // 2. 使用 Customer 类（带有你新加注解的类）
         ExcelUtil<Customer> util = new ExcelUtil<Customer>(Customer.class);
+        // 3. 调用导出方法生成模板（这会走你验证过的成功路径）
         return util.exportExcel(list, "客户导入模板");
     }
-
     /**
      * 导入数据
      */
